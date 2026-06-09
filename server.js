@@ -433,16 +433,20 @@ app.delete('/api/projects/:id', (req, res) => {
 
 // ─── Start Server ────────────────────────────────────────────────
 
-app.listen(PORT, '0.0.0.0', () => {
-  console.log('');
-  console.log('  ╔══════════════════════════════════════════╗');
-  console.log('  ║                                          ║');
-  console.log('  ║   🛜  WifiMapper Server                  ║');
-  console.log(`  ║   📡 http://localhost:${PORT}              ║`);
-  console.log('  ║                                          ║');
-  console.log('  ║   WiFi Heatmap & Survey Tool             ║');
-  console.log('  ║   NetSpot Alternative — Free & Local     ║');
-  console.log('  ║                                          ║');
-  console.log('  ╚══════════════════════════════════════════╝');
-  console.log('');
-});
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log('');
+    console.log('  ╔══════════════════════════════════════════╗');
+    console.log('  ║                                          ║');
+    console.log('  ║   🛜  WifiMapper Server                  ║');
+    console.log(`  ║   📡 http://localhost:${PORT}              ║`);
+    console.log('  ║                                          ║');
+    console.log('  ║   WiFi Heatmap & Survey Tool             ║');
+    console.log('  ║   NetSpot Alternative — Free & Local     ║');
+    console.log('  ║                                          ║');
+    console.log('  ╚══════════════════════════════════════════╝');
+    console.log('');
+  });
+}
+
+module.exports = app;
