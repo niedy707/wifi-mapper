@@ -9,6 +9,7 @@ const App = (() => {
   let measureCancelled = false;
   let pendingTextPos = null;
   let pendingRouterPos = null;
+  let originalPinsVisible = true;
 
   // WiFi status polling interval
   let wifiPollTimer = null;
@@ -123,9 +124,23 @@ const App = (() => {
         if (polyActions) {
           if (tool === 'room-polygon') {
             polyActions.style.display = 'flex';
+            // Save current pins visibility
+            const pinsCheck = document.getElementById('pins-visible');
+            const toggleBtn = document.getElementById('btn-polygon-toggle-pins');
+            if (pinsCheck && toggleBtn) {
+              originalPinsVisible = pinsCheck.checked;
+              toggleBtn.textContent = originalPinsVisible ? 'Ölçümleri Gizle' : 'Ölçümleri Göster';
+            }
           } else {
             polyActions.style.display = 'none';
             FloorPlan.cancelPolygon();
+            
+            // Restore pins visibility
+            const pinsCheck = document.getElementById('pins-visible');
+            if (pinsCheck && pinsCheck.checked !== originalPinsVisible) {
+              pinsCheck.checked = originalPinsVisible;
+              pinsCheck.dispatchEvent(new Event('change'));
+            }
           }
         }
       });
@@ -1329,6 +1344,16 @@ const App = (() => {
     document.getElementById('btn-polygon-cancel')?.addEventListener('click', () => {
       FloorPlan.cancelPolygon();
       document.querySelector('.tool-btn[data-tool="select"]')?.click();
+    });
+
+    document.getElementById('btn-polygon-toggle-pins')?.addEventListener('click', (e) => {
+      const pinsCheck = document.getElementById('pins-visible');
+      if (pinsCheck) {
+        const isVisible = pinsCheck.checked;
+        pinsCheck.checked = !isVisible;
+        pinsCheck.dispatchEvent(new Event('change'));
+        e.target.textContent = !isVisible ? 'Ölçümleri Göster' : 'Ölçümleri Gizle';
+      }
     });
   }
 
