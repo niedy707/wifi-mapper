@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="WifiMapper — Ev WiFi kapsama alanı ve hız haritası oluşturma aracı. Ücretsiz NetSpot alternatifi.">
+  <title>WifiMapper — WiFi Heatmap & Survey</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <!-- ─── Header ────────────────────────────────────── -->
+  <header id="app-header">
+    <div class="header-left">
+      <div class="logo">
+        <span class="logo-icon">📡</span>
+        <h1>WifiMapper</h1>
+      </div>
+    </div>
+    <div class="header-center">
+      <div class="project-selector">
+        <select id="project-select">
+          <option value="">— Proje Seç —</option>
+        </select>
+        <button id="btn-new-project" class="btn btn-sm btn-primary" title="Yeni Proje">＋</button>
+        <button id="btn-save-project" class="btn btn-sm btn-ghost" title="Kaydet">💾</button>
+        <button id="btn-delete-project" class="btn btn-sm btn-ghost btn-danger" title="Sil">🗑️</button>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="wifi-status" id="wifi-status">
+        <span class="status-dot offline"></span>
+        <span class="status-text">Bağlantı bekleniyor…</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ─── Main Layout ───────────────────────────────── -->
+  <main id="app-main">
+    <!-- Left Toolbar -->
+    <aside id="toolbar" class="panel">
+      <div class="toolbar-section">
+        <h3 class="toolbar-title">Araçlar</h3>
+        <div class="tool-group">
+          <button class="tool-btn active" data-tool="select" title="Seç & Taşı">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/></svg>
+            <span>Seç</span>
+          </button>
+          <button class="tool-btn" data-tool="measure" title="Ölçüm Yap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v4m0 12v4M2 12h4m12 0h4"/><circle cx="12" cy="12" r="9" stroke-dasharray="4 2"/></svg>
+            <span>Ölçüm</span>
+          </button>
+          <button class="tool-btn" data-tool="router" title="Modem / AP Ekle">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><circle cx="6" cy="6" r="1" fill="currentColor"/><circle cx="18" cy="6" r="1" fill="currentColor"/><circle cx="6" cy="18" r="1" fill="currentColor"/><circle cx="18" cy="18" r="1" fill="currentColor"/><path d="M12 2v4M12 14v4"/></svg>
+            <span>Modem/AP</span>
+          </button>
+          <button class="tool-btn" data-tool="draw-rect" title="Oda Çiz">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="1"/></svg>
+            <span>Oda</span>
+          </button>
+          <button class="tool-btn" data-tool="room-polygon" title="Oda Belirle">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12,2 22,9 17,22 7,22 2,9"/></svg>
+            <span>Oda Belirle</span>
+          </button>
+          <button class="tool-btn" data-tool="draw-line" title="Duvar Çiz">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="20" x2="20" y2="4"/></svg>
+            <span>Duvar</span>
+          </button>
+          <button class="tool-btn" data-tool="draw-text" title="Metin Ekle">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9.5" y1="4" x2="9.5" y2="20"/><line x1="14.5" y1="4" x2="14.5" y2="20"/><line x1="7" y1="20" x2="17" y2="20"/></svg>
+            <span>Metin</span>
+          </button>
+          <button class="tool-btn" data-tool="eraser" title="Silgi">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 20H7L3 16l9-9 8 8-4 4z"/><line x1="7" y1="20" x2="20" y2="20"/></svg>
+            <span>Sil</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="toolbar-section">
+        <h3 class="toolbar-title">Kat Planı</h3>
+        <div class="tool-group vertical">
+          <label for="floorplan-upload" class="btn btn-sm btn-secondary upload-btn">
+            📁 Resim Yükle
+          </label>
+          <input type="file" id="floorplan-upload" accept="image/*" hidden>
+          <button id="btn-clear-floorplan" class="btn btn-sm btn-ghost">🧹 Temizle</button>
+        </div>
+      </div>
+
+      <div class="toolbar-section">
+        <h3 class="toolbar-title">Ölçüm Modu</h3>
+        <div class="tool-group vertical">
+          <select id="measurement-mode" style="width: 100%; padding: 8px; border-radius: 6px; background: rgba(255,255,255,0.05); color: white; border: 1px solid rgba(255,255,255,0.1); font-size: 0.85rem; font-family: inherit;">
+            <option value="smart" selected>⚡ Çift Bant (Akıllı Hibrit)</option>
+            <option value="manual">🔄 Çift Bant (Adım Adım Tam)</option>
+            <option value="current">📶 Tek Bant (Sadece Bağlı)</option>
+          </select>
+          <p id="mode-hint" style="font-size: 0.72rem; color: rgba(255,255,255,0.45); margin-top: 6px; line-height: 1.35; font-weight: 300;">Akıllı Hibrit: Bağlı bandı ölçer, diğer bandı tarayıp hızını sinyale göre otomatik tahmin eder.</p>
+        </div>
+      </div>
+
+      <div class="toolbar-section">
+        <h3 class="toolbar-title">Çizim Ayarları</h3>
+        <div class="draw-options">
+          <label>Renk
+            <input type="color" id="draw-color" value="#ffffff">
+          </label>
+          <label>Kalınlık
+            <input type="range" id="draw-width" min="1" max="10" value="2">
+          </label>
+        </div>
+      </div>
+
+      <div class="toolbar-section">
+        <h3 class="toolbar-title">Heatmap</h3>
+        <div class="heatmap-controls">
+          <label>Katman
+            <select id="heatmap-layer">
+              <option value="signal">Sinyal Gücü (dBm)</option>
+              <option value="download">Bağlantı Hızı (TX Rate)</option>
+              <option value="snr">SNR (dB)</option>
+            </select>
+          </label>
+          <label>Bant Filtresi
+            <select id="heatmap-band">
+              <option value="all">Hibrit (Hangisi Hızlıysa)</option>
+              <option value="2.4GHz">Sadece 2.4 GHz</option>
+              <option value="5GHz">Sadece 5 GHz</option>
+            </select>
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" id="heatmap-visible" checked>
+            Heatmap Göster
+          </label>
+          <label>Opaklık
+            <input type="range" id="heatmap-opacity" min="10" max="90" value="55">
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" id="pins-visible" checked>
+            Pin'leri Göster
+          </label>
+        </div>
+      </div>
+
+      <div class="toolbar-section" style="border-top: 1px solid rgba(255,255,255,0.05); padding-top: 15px;">
+        <h3 class="toolbar-title" style="color: #a5b4fc; display: flex; align-items: center; gap: 4px;">🧠 Yapay Zeka (AI)</h3>
+        <div class="tool-group vertical">
+          <button id="btn-ai-analysis" class="btn btn-sm btn-primary" style="background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); border: none; font-weight: 600; width: 100%;">Ağ Analizi Yap</button>
+        </div>
+      </div>
+
+      <div class="toolbar-section">
+        <h3 class="toolbar-title">Dışa Aktar</h3>
+        <div class="tool-group vertical">
+          <button id="btn-export-png" class="btn btn-sm btn-secondary">📷 PNG Kaydet</button>
+          <button id="btn-export-json" class="btn btn-sm btn-secondary">📄 JSON İndir</button>
+          <button id="btn-export-csv" class="btn btn-sm btn-secondary">📊 CSV İndir</button>
+          <button id="btn-export-report" class="btn btn-sm btn-secondary">📋 Rapor Oluştur</button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Canvas Area -->
+    <div id="canvas-container">
+      <!-- Welcome Overlay -->
+      <div id="welcome-overlay" class="overlay">
+        <div class="welcome-content">
+          <div class="welcome-icon">📡</div>
+          <h2>WifiMapper'a Hoş Geldiniz</h2>
+          <p>WiFi kapsama alanınızı haritalamaya başlamak için bir kat planı yükleyin veya doğrudan çizim yapın.</p>
+          <div class="welcome-actions">
+            <label for="floorplan-upload-hero" class="btn btn-lg btn-primary">
+              📁 Kat Planı Yükle
+            </label>
+            <input type="file" id="floorplan-upload-hero" accept="image/*" hidden>
+            <button id="btn-start-drawing" class="btn btn-lg btn-secondary">
+              ✏️ Boş Canvas ile Başla
+            </button>
+          </div>
+          <p class="welcome-hint">PNG, JPG veya SVG formatlarını destekler</p>
+        </div>
+      </div>
+
+      <!-- Main Canvas Stack -->
+      <canvas id="canvas-floorplan"></canvas>
+      <canvas id="canvas-heatmap"></canvas>
+      <canvas id="canvas-drawing"></canvas>
+      <canvas id="canvas-pins"></canvas>
+      <canvas id="canvas-interaction"></canvas>
+
+      <!-- Zoom Controls -->
+      <div class="zoom-controls">
+        <button id="btn-zoom-in" class="btn btn-icon" title="Yakınlaştır">＋</button>
+        <span id="zoom-level">100%</span>
+        <button id="btn-zoom-out" class="btn btn-icon" title="Uzaklaştır">−</button>
+        <button id="btn-zoom-fit" class="btn btn-icon" title="Sığdır">⊞</button>
+      </div>
+
+      <!-- Room Drawing Actions -->
+      <div id="room-polygon-actions" style="display:none; position: absolute; top: 15px; left: 50%; transform: translateX(-50%); z-index: 10; background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(99,102,241,0.3); padding: 8px 16px; border-radius: 8px; gap: 10px; align-items: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.5);">
+        <span style="color: #a5b4fc; font-size: 0.85rem; font-weight: 500;">Köşeleri tıklayarak oda çizin:</span>
+        <button id="btn-polygon-complete" class="btn btn-xs btn-primary" style="font-size: 0.75rem; padding: 4px 10px; font-weight: 600;">Tamamla</button>
+        <button id="btn-polygon-cancel" class="btn btn-xs btn-ghost" style="font-size: 0.75rem; padding: 4px 10px; color: #f87171;">İptal</button>
+      </div>
+
+      <!-- Large Measurement Result Overlay -->
+      <div id="measurement-result-overlay" style="display:none; opacity: 0; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 20; background: rgba(15, 23, 42, 0.95); border: 2px solid rgba(99, 102, 241, 0.5); border-radius: 16px; padding: 24px 40px; text-align: center; pointer-events: none; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7); min-width: 280px; transition: opacity 0.5s ease;">
+        <div style="font-size: 0.8rem; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px; font-weight: 600;">Ölçüm Sonucu</div>
+        <div id="result-overlay-value" style="font-size: 3.5rem; font-weight: 800; color: #ffffff; line-height: 1.1; margin-bottom: 15px; font-family: 'Inter', sans-serif;">-45 dBm</div>
+        <div style="position: relative; width: 100%; height: 8px; background: linear-gradient(to right, #ef4444 0%, #f97316 25%, #fbbf24 50%, #10b981 75%, #06b6d4 100%); border-radius: 4px; margin-bottom: 12px;">
+          <div id="result-overlay-tick" style="position: absolute; top: -4px; left: 50%; transform: translateX(-50%); width: 4px; height: 16px; background: #ffffff; border-radius: 2px; box-shadow: 0 0 4px rgba(0,0,0,0.5); transition: left 0.3s ease;"></div>
+        </div>
+        <div id="result-overlay-desc" style="font-size: 0.85rem; color: #a5b4fc; font-weight: 500;">Mükemmel Sinyal</div>
+      </div>
+
+      <!-- Measurement Tooltip -->
+      <div id="measurement-tooltip" class="tooltip" style="display:none;">
+        <div class="tooltip-content">
+          <div class="tooltip-header">
+            <span class="tooltip-ssid"></span>
+            <span class="tooltip-band"></span>
+          </div>
+          <div class="tooltip-body">
+            <div class="tooltip-row"><span>Sinyal</span><span class="tooltip-signal"></span></div>
+            <div class="tooltip-row"><span>SNR</span><span class="tooltip-snr"></span></div>
+            <div class="tooltip-row"><span>Download</span><span class="tooltip-download"></span></div>
+            <div class="tooltip-row"><span>Upload</span><span class="tooltip-upload"></span></div>
+            <div class="tooltip-row"><span>Gecikme</span><span class="tooltip-latency"></span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Panel -->
+    <aside id="details-panel" class="panel">
+      <div class="panel-section">
+        <h3 class="panel-title">📡 Mevcut Bağlantı</h3>
+        <div id="current-wifi" class="info-card">
+          <div class="info-row"><span>SSID</span><span id="info-ssid">—</span></div>
+          <div class="info-row"><span>Sinyal</span><span id="info-signal">—</span></div>
+          <div class="info-row"><span>Gürültü</span><span id="info-noise">—</span></div>
+          <div class="info-row"><span>SNR</span><span id="info-snr">—</span></div>
+          <div class="info-row"><span>Kanal</span><span id="info-channel">—</span></div>
+          <div class="info-row"><span>Bant</span><span id="info-band">—</span></div>
+          <div class="info-row"><span>PHY Mode</span><span id="info-phymode">—</span></div>
+          <div class="info-row"><span>TX Rate</span><span id="info-txrate">—</span></div>
+        </div>
+      </div>
+
+      <div class="panel-section">
+        <h3 class="panel-title">📍 Seçili Ölçüm</h3>
+        <div id="selected-measurement" class="info-card empty-state">
+          <p>Bir ölçüm noktasına tıklayın veya yeni ölçüm ekleyin</p>
+        </div>
+        <div id="measurement-detail" class="info-card" style="display:none;">
+          <div class="measurement-header" style="display: flex; gap: 6px; align-items: center;">
+            <input type="text" id="measurement-label" class="input-ghost" placeholder="Etiket ekle…">
+            <button id="btn-remeasure" class="btn btn-sm btn-primary" title="Yeniden Ölç" style="padding: 4px 8px; font-size: 0.75rem; font-weight: 600; display: none;">🔄 Yeniden Ölç</button>
+            <button id="btn-delete-measurement" class="btn btn-sm btn-danger" title="Sil">🗑️</button>
+          </div>
+          <div id="measurement-detail-body"></div>
+        </div>
+      </div>
+
+      <div class="panel-section">
+        <h3 class="panel-title">📊 Özet İstatistikler</h3>
+        <div id="stats-summary" class="info-card">
+          <div class="info-row"><span>Toplam Ölçüm</span><span id="stat-total">0</span></div>
+          <div class="info-row"><span>2.4 GHz</span><span id="stat-24ghz">0</span></div>
+          <div class="info-row"><span>5 GHz</span><span id="stat-5ghz">0</span></div>
+          <div class="info-row separator"><span>En İyi Sinyal</span><span id="stat-best-signal">—</span></div>
+          <div class="info-row"><span>En Kötü Sinyal</span><span id="stat-worst-signal">—</span></div>
+          <div class="info-row"><span>Ort. Download</span><span id="stat-avg-download">—</span></div>
+        </div>
+      </div>
+
+      <div class="panel-section">
+        <h3 class="panel-title">📋 Tüm Ölçümler</h3>
+        <div id="measurements-list" class="measurements-list">
+          <p class="empty-state">Henüz ölçüm yok</p>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <!-- ─── Status Bar ────────────────────────────────── -->
+  <footer id="status-bar">
+    <div class="status-left">
+      <span id="status-tool">Araç: Seç</span>
+      <span class="separator">|</span>
+      <span id="status-coords">X: 0, Y: 0</span>
+    </div>
+    <div class="status-center">
+      <span id="status-message"></span>
+    </div>
+    <div class="status-right">
+      <span id="status-zoom">Zoom: 100%</span>
+      <span class="separator">|</span>
+      <span id="status-measurements">Ölçüm: 0</span>
+    </div>
+  </footer>
+
+  <!-- ─── Modal: New Project ────────────────────────── -->
+  <div id="modal-overlay" class="modal-overlay" style="display:none;">
+    <div class="modal" id="modal-new-project">
+      <h3>Yeni Proje Oluştur</h3>
+      <div class="form-group">
+        <label for="new-project-name">Proje Adı</label>
+        <input type="text" id="new-project-name" placeholder="Örn: Ev WiFi Haritası">
+      </div>
+      <div class="modal-actions">
+        <button id="btn-modal-cancel" class="btn btn-sm btn-ghost">İptal</button>
+        <button id="btn-modal-create" class="btn btn-sm btn-primary">Oluştur</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Modal: Measurement in Progress ────────────── -->
+  <div id="modal-measuring" class="modal-overlay" style="display:none;">
+    <div class="modal modal-measuring">
+      <div class="measuring-animation">
+        <div class="signal-rings">
+          <div class="ring ring-1"></div>
+          <div class="ring ring-2"></div>
+          <div class="ring ring-3"></div>
+          <div class="ring-center">📡</div>
+        </div>
+      </div>
+      <h3 id="measuring-title">Ölçüm Yapılıyor…</h3>
+      <div class="measuring-steps">
+        <div class="step" id="step-sample-1"><span class="step-icon">⏳</span> 1. Saniye Analizi</div>
+        <div class="step" id="step-sample-2"><span class="step-icon">⏳</span> 2. Saniye Analizi</div>
+        <div class="step" id="step-sample-3"><span class="step-icon">⏳</span> 3. Saniye Analizi</div>
+        <div class="step" id="step-sample-4"><span class="step-icon">⏳</span> 4. Saniye Analizi</div>
+        <div class="step" id="step-sample-5"><span class="step-icon">⏳</span> 5. Saniye Analizi</div>
+      </div>
+      <div class="measuring-progress">
+        <div class="progress-bar">
+          <div class="progress-fill" id="measuring-progress-fill"></div>
+        </div>
+      </div>
+      
+      <!-- Çift bant adım adım ölçüm kılavuzu -->
+      <div id="measuring-guide-container" style="display:none; margin-top: 15px; text-align: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">
+        <p id="measuring-guide-text" style="color: #a5b4fc; font-weight: 600; margin-bottom: 6px; font-size: 0.9rem;"></p>
+        <p style="font-size: 0.75rem; color: rgba(255,255,255,0.6); margin-bottom: 12px; line-height: 1.4;">Lütfen diğer WiFi bandına geçin ve aşağıdaki butona tıklayın.</p>
+        <div style="display: flex; gap: 8px; justify-content: center;">
+          <button id="btn-manual-skip" class="btn btn-xs btn-secondary" style="font-size: 0.75rem; padding: 6px 12px;">Bu Bandı Atla</button>
+          <button id="btn-manual-continue" class="btn btn-xs btn-primary" style="font-size: 0.75rem; padding: 6px 12px; font-weight: 600;">Geçiş Yaptım, Devam Et</button>
+        </div>
+      </div>
+
+      <button id="btn-cancel-measuring" class="btn btn-sm btn-ghost" style="margin-top: 10px;">İptal</button>
+    </div>
+  </div>
+
+  <!-- ─── Modal: Text Input ─────────────────────────── -->
+  <div id="modal-text-input" class="modal-overlay" style="display:none;">
+    <div class="modal">
+      <h3>Metin Ekle</h3>
+      <div class="form-group">
+        <label for="canvas-text-input">Metin</label>
+        <input type="text" id="canvas-text-input" placeholder="Oda adı, not vb.">
+      </div>
+      <div class="modal-actions">
+        <button id="btn-text-cancel" class="btn btn-sm btn-ghost">İptal</button>
+        <button id="btn-text-add" class="btn btn-sm btn-primary">Ekle</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Modal: Add Router/AP ─────────────────────── -->
+  <div id="modal-router-overlay" class="modal-overlay" style="display:none;">
+    <div class="modal" id="modal-router">
+      <h3>Modem / Access Point (AP) Ekle</h3>
+      <div class="form-group">
+        <label for="router-name">Cihaz Adı</label>
+        <input type="text" id="router-name" placeholder="Örn: Ana Modem, Salon AP">
+      </div>
+      <div class="form-group">
+        <label for="router-band">Çalışma Bandı</label>
+        <select id="router-band">
+          <option value="5GHz" selected>5 GHz</option>
+          <option value="2.4GHz">2.4 GHz</option>
+          <option value="5GHz+2.4GHz">5 GHz + 2.4 GHz (Çift Bant)</option>
+          <option value="6GHz">6 GHz</option>
+        </select>
+      </div>
+      <div class="form-group" id="router-single-channel-group">
+        <label for="router-channel">Kanal Numarası</label>
+        <input type="number" id="router-channel" placeholder="Örn: 36, 6, 11" min="1" max="200" value="36">
+      </div>
+      <div class="form-group" id="router-dual-channels-group" style="display:none; gap: 10px; flex-direction: row; margin-bottom: 15px;">
+        <div style="flex: 1; text-align: left;">
+          <label for="router-channel-5">5 GHz Kanalı</label>
+          <input type="number" id="router-channel-5" placeholder="Örn: 36" min="36" max="165" value="36" style="width: 100%; padding: 8px; border-radius: 6px; background: rgba(255,255,255,0.05); color: white; border: 1px solid rgba(255,255,255,0.1);">
+        </div>
+        <div style="flex: 1; text-align: left;">
+          <label for="router-channel-24">2.4 GHz Kanalı</label>
+          <input type="number" id="router-channel-24" placeholder="Örn: 6" min="1" max="13" value="6" style="width: 100%; padding: 8px; border-radius: 6px; background: rgba(255,255,255,0.05); color: white; border: 1px solid rgba(255,255,255,0.1);">
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button id="btn-router-cancel" class="btn btn-sm btn-ghost">İptal</button>
+        <button id="btn-router-add" class="btn btn-sm btn-primary">Ekle</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Modal: AI Network Analysis ───────────────── -->
+  <div id="modal-ai-overlay" class="modal-overlay" style="display:none;">
+    <div class="modal modal-lg" id="modal-ai-analysis" style="max-width: 700px; width: 90%; background: #0f172a; border: 1px solid rgba(99,102,241,0.2); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.5), 0 10px 10px -5px rgba(0,0,0,0.4);">
+      <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 12px; margin-bottom: 15px;">
+        <h3 style="margin: 0; display: flex; align-items: center; gap: 8px; font-weight: 700; color: #a5b4fc; font-size: 1.25rem;">
+          <span>🧠</span> Yapay Zeka Ağ Analiz Raporu
+        </h3>
+        <button id="btn-close-ai" class="btn btn-sm btn-ghost" style="font-size: 1.5rem; line-height: 1; padding: 0; border: none; background: transparent; color: rgba(255,255,255,0.5); cursor: pointer;">&times;</button>
+      </div>
+      <div id="ai-analysis-content" style="max-height: 450px; overflow-y: auto; text-align: left; font-size: 0.9rem; line-height: 1.6; font-weight: 300; padding-right: 8px;">
+        <!-- Dynamic report content -->
+      </div>
+      <div class="modal-actions" style="margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px; display: flex; justify-content: flex-end; gap: 10px;">
+        <button id="btn-print-ai" class="btn btn-sm btn-secondary">🖨️ Raporu Yazdır</button>
+        <button id="btn-ok-ai" class="btn btn-sm btn-primary">Tamam</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/floorplan.js"></script>
+  <script src="js/heatmap.js"></script>
+  <script src="js/speedtest.js"></script>
+  <script src="js/survey.js"></script>
+  <script src="js/export.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

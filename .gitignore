@@ -1,0 +1,5 @@
+node_modules/
+wifi_scanner
+*.log
+.DS_Store
+.vercel/
