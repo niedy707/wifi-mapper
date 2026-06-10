@@ -998,15 +998,272 @@ body {
   50% { box-shadow: 0 0 0 12px transparent; }
 }
 
-/* ─── Responsive (mobile-aware) ─────────────────────────── */
-@media (max-width: 900px) {
-  #toolbar { width: 60px; padding: 8px 4px; }
-  #details-panel { width: 240px; }
+/* ─── Responsive (Tablet: 768-1024px) ───────────────────── */
+@media (max-width: 1024px) {
+  :root {
+    --toolbar-width: 60px;
+    --details-width: 260px;
+  }
+
+  #toolbar { padding: 8px 4px; }
   .tool-btn span { display: none; }
-  .toolbar-title { font-size: 8px; }
+  .toolbar-title { font-size: 8px; text-align: center; }
   .tool-group { grid-template-columns: 1fr; }
-  .toolbar-section .tool-group.vertical .btn span,
+
   .toolbar-section .draw-options,
-  .toolbar-section .heatmap-controls,
-  .toolbar-section:nth-child(n+3) { display: none; }
+  .toolbar-section .heatmap-controls label:not(.checkbox-label),
+  #btn-clear-all-rooms { display: none; }
+
+  .heatmap-controls select,
+  .checkbox-label { font-size: 10px; }
+}
+
+/* ─── Responsive (Mobile: <768px) ──────────────────────── */
+@media (max-width: 768px) {
+  :root {
+    --header-height: 46px;
+    --statusbar-height: 0px;
+  }
+
+  /* Header compact */
+  #app-header {
+    padding: 0 10px;
+    gap: 6px;
+  }
+
+  .logo h1 { font-size: 14px; }
+  .logo-icon { font-size: 18px; }
+
+  .header-center {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .project-selector select {
+    min-width: 100px;
+    max-width: 140px;
+    font-size: 11px;
+    padding: 4px 6px;
+  }
+
+  .header-right {
+    display: none; /* WiFi status hidden on mobile - shown in status overlay */
+  }
+
+  /* Status bar hidden on mobile */
+  #status-bar { display: none; }
+
+  /* Panels become slide-in overlays */
+  #toolbar {
+    position: fixed;
+    left: 0;
+    top: var(--header-height);
+    bottom: 0;
+    width: 200px;
+    z-index: 200;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    padding: 12px;
+    box-shadow: 4px 0 20px rgba(0,0,0,0.5);
+  }
+
+  #toolbar.mobile-open {
+    transform: translateX(0);
+  }
+
+  /* Restore text labels when open on mobile */
+  #toolbar.mobile-open .tool-btn span { display: block; }
+  #toolbar.mobile-open .toolbar-title { font-size: 10px; text-align: left; }
+  #toolbar.mobile-open .tool-group { grid-template-columns: 1fr 1fr; }
+  #toolbar.mobile-open .draw-options,
+  #toolbar.mobile-open .heatmap-controls label,
+  #toolbar.mobile-open #btn-clear-all-rooms { display: flex; }
+  #toolbar.mobile-open .heatmap-controls { display: flex; }
+
+  #details-panel {
+    position: fixed;
+    right: 0;
+    top: var(--header-height);
+    bottom: 0;
+    width: 280px;
+    z-index: 200;
+    transform: translateX(100%);
+    transition: transform 0.25s ease;
+    box-shadow: -4px 0 20px rgba(0,0,0,0.5);
+  }
+
+  #details-panel.mobile-open {
+    transform: translateX(0);
+  }
+
+  /* Mobile overlay backdrop */
+  .mobile-backdrop {
+    position: fixed;
+    inset: 0;
+    top: var(--header-height);
+    background: rgba(0,0,0,0.5);
+    z-index: 190;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+  }
+
+  .mobile-backdrop.active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* Floating Mobile Toolbar */
+  .mobile-fab-toolbar {
+    position: fixed;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex !important;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 10px;
+    background: rgba(15, 15, 40, 0.92);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(100, 100, 200, 0.2);
+    border-radius: 24px;
+    z-index: 180;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+  }
+
+  .mobile-fab-toolbar button {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    background: transparent;
+    color: #e8e8f0;
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s;
+  }
+
+  .mobile-fab-toolbar button:hover,
+  .mobile-fab-toolbar button:active {
+    background: rgba(99, 102, 241, 0.2);
+  }
+
+  .mobile-fab-toolbar button.active {
+    background: rgba(99, 102, 241, 0.3);
+    color: #818cf8;
+  }
+
+  .mobile-fab-toolbar .fab-divider {
+    width: 1px;
+    height: 24px;
+    background: rgba(255,255,255,0.1);
+    margin: 0 2px;
+  }
+
+  /* Zoom controls move up a bit */
+  .zoom-controls {
+    bottom: 76px;
+  }
+
+  /* Modal responsive */
+  .modal {
+    min-width: 0;
+    width: calc(100vw - 32px);
+    max-width: 400px;
+    padding: 20px;
+  }
+
+  .modal h3 { font-size: 15px; }
+
+  /* Welcome responsive */
+  .welcome-content {
+    padding: 24px;
+    max-width: calc(100vw - 32px);
+  }
+
+  .welcome-icon { font-size: 40px; }
+  .welcome-content h2 { font-size: 20px; }
+  .welcome-content p { font-size: 13px; }
+
+  .welcome-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  /* Tooltip responsive */
+  .tooltip-content {
+    max-width: calc(100vw - 40px);
+  }
+
+  /* Canvas cursor on touch */
+  #canvas-interaction { cursor: default; touch-action: none; }
+
+  /* Room polygon actions responsive */
+  #room-polygon-actions {
+    top: auto !important;
+    bottom: 76px !important;
+    left: 10px !important;
+    right: 10px !important;
+    transform: none !important;
+    border-radius: 12px !important;
+    justify-content: center !important;
+  }
+}
+
+/* ─── Very Small Screens (<400px) ──────────────────────── */
+@media (max-width: 400px) {
+  .project-selector select {
+    min-width: 80px;
+    max-width: 110px;
+  }
+
+  #btn-save-project,
+  #btn-delete-project { display: none; }
+
+  .mobile-fab-toolbar {
+    padding: 4px 8px;
+    gap: 2px;
+  }
+
+  .mobile-fab-toolbar button {
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
+  }
+}
+
+/* ─── Desktop only elements ────────────────────────────── */
+.mobile-fab-toolbar { display: none; }
+.mobile-backdrop { display: none; }
+
+@media (max-width: 768px) {
+  .mobile-backdrop { display: block; }
+}
+
+/* ─── Device Type Badge ────────────────────────────────── */
+.device-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+.device-badge.mobile {
+  background: rgba(16, 185, 129, 0.12);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.device-badge.desktop {
+  background: rgba(99, 102, 241, 0.12);
+  color: #818cf8;
+  border: 1px solid rgba(99, 102, 241, 0.2);
 }

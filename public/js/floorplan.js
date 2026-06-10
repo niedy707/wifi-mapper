@@ -29,11 +29,14 @@ const FloorPlan = (() => {
   let drawStart = null;
   let drawEnd = null;
   let polygonVertices = []; // For room polygon tool
+  let selectedShapeId = null; // For shape selection
+  let roomsVisible = true; // Toggle room visibility
 
   // Callbacks
   let onTransformChange = null;
   let onCanvasClick = null;
   let onDrawingChange = null;
+  let onShapeDoubleClick = null;
 
   // ─── Initialization ─────────────────────────────────────
   function init(options = {}) {
@@ -48,6 +51,7 @@ const FloorPlan = (() => {
     onTransformChange = options.onTransformChange || (() => {});
     onCanvasClick = options.onCanvasClick || (() => {});
     onDrawingChange = options.onDrawingChange || (() => {});
+    onShapeDoubleClick = options.onShapeDoubleClick || null;
 
     resizeCanvases();
     window.addEventListener('resize', resizeCanvases);
@@ -193,7 +197,10 @@ const FloorPlan = (() => {
     ctxDrawing.scale(scale, scale);
 
     // Render saved shapes
-    drawingShapes.forEach(shape => drawShape(ctxDrawing, shape));
+    drawingShapes.forEach(shape => {
+      if (!roomsVisible && (shape.type === 'draw-rect' || shape.type === 'room-polygon')) return;
+      drawShape(ctxDrawing, shape);
+    });
 
     // Render current shape being drawn
     if (isDrawing && drawStart && drawEnd) {
@@ -206,29 +213,26 @@ const FloorPlan = (() => {
       });
     }
 
-    // Render current polygon in progress
+    // Render current polygon in progress (show only dots/points)
     if (currentTool === 'room-polygon' && polygonVertices.length > 0) {
-      ctxDrawing.beginPath();
-      ctxDrawing.moveTo(polygonVertices[0].x, polygonVertices[0].y);
-      for (let i = 1; i < polygonVertices.length; i++) {
-        ctxDrawing.lineTo(polygonVertices[i].x, polygonVertices[i].y);
-      }
-      if (drawEnd) {
-        ctxDrawing.lineTo(drawEnd.x, drawEnd.y);
-      }
-      ctxDrawing.strokeStyle = drawColor;
-      ctxDrawing.lineWidth = drawWidth / scale;
-      ctxDrawing.stroke();
-
       // Render vertex dots
-      polygonVertices.forEach(v => {
+      polygonVertices.forEach((v, index) => {
         ctxDrawing.beginPath();
-        ctxDrawing.arc(v.x, v.y, 4 / scale, 0, Math.PI * 2);
+        ctxDrawing.arc(v.x, v.y, 5 / scale, 0, Math.PI * 2);
         ctxDrawing.fillStyle = '#6366f1';
         ctxDrawing.fill();
         ctxDrawing.strokeStyle = '#ffffff';
-        ctxDrawing.lineWidth = 1 / scale;
+        ctxDrawing.lineWidth = 1.5 / scale;
         ctxDrawing.stroke();
+
+        // Draw order number
+        ctxDrawing.save();
+        ctxDrawing.font = `bold ${8 / scale}px Inter, sans-serif`;
+        ctxDrawing.fillStyle = '#ffffff';
+        ctxDrawing.textAlign = 'center';
+        ctxDrawing.textBaseline = 'middle';
+        ctxDrawing.fillText(index + 1, v.x, v.y);
+        ctxDrawing.restore();
       });
     }
 
@@ -245,6 +249,36 @@ const FloorPlan = (() => {
     switch (shape.type) {
       case 'draw-rect':
         ctx.strokeRect(shape.x1, shape.y1, shape.x2 - shape.x1, shape.y2 - shape.y1);
+        
+        // Fill translucent color
+        ctx.fillStyle = hexToRgba(shape.color || '#ffffff', 0.15);
+        ctx.fillRect(shape.x1, shape.y1, shape.x2 - shape.x1, shape.y2 - shape.y1);
+
+        // Draw text label at center
+        if (shape.text) {
+          const cx = (shape.x1 + shape.x2) / 2;
+          const cy = (shape.y1 + shape.y2) / 2;
+          ctx.save();
+          ctx.font = `bold ${12 / scale}px Inter, sans-serif`;
+          ctx.fillStyle = '#ffffff';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          
+          ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+          ctx.shadowBlur = 4 / scale;
+          ctx.fillText(shape.text, cx, cy);
+          ctx.restore();
+        }
+
+        // Highlight if selected
+        if (shape.id === selectedShapeId) {
+          ctx.save();
+          ctx.strokeStyle = '#6366f1';
+          ctx.lineWidth = 3 / scale;
+          ctx.setLineDash([4 / scale, 4 / scale]);
+          ctx.strokeRect(shape.x1 - 2/scale, shape.y1 - 2/scale, (shape.x2 - shape.x1) + 4/scale, (shape.y2 - shape.y1) + 4/scale);
+          ctx.restore();
+        }
         break;
       case 'draw-line':
         ctx.beginPath();
@@ -269,6 +303,16 @@ const FloorPlan = (() => {
           ctx.fillStyle = hexToRgba(shape.color || '#ffffff', 0.15);
           ctx.fill();
           ctx.stroke();
+
+          // If selected, draw highlight outline
+          if (shape.id === selectedShapeId) {
+            ctx.save();
+            ctx.strokeStyle = '#6366f1';
+            ctx.lineWidth = 3 / scale;
+            ctx.setLineDash([4 / scale, 4 / scale]);
+            ctx.stroke();
+            ctx.restore();
+          }
 
           // Render room name label at centroid
           if (shape.text) {
@@ -321,11 +365,21 @@ const FloorPlan = (() => {
       if (e.button === 0) {
         const pinHit = typeof Survey !== 'undefined' && Survey.hitTestPin(canvasPos.x, canvasPos.y);
         if (!pinHit) {
-          // Start panning
-          isPanning = true;
-          panStartX = mx - offsetX;
-          panStartY = my - offsetY;
-          canvasInteraction.style.cursor = 'grabbing';
+          // Check shape hit test
+          const shapeHit = hitTestShape(canvasPos.x, canvasPos.y);
+          if (shapeHit) {
+            selectShape(shapeHit.id);
+          } else {
+            selectShape(null);
+            
+            // Start panning
+            isPanning = true;
+            panStartX = mx - offsetX;
+            panStartY = my - offsetY;
+            canvasInteraction.style.cursor = 'grabbing';
+          }
+        } else {
+          selectShape(null);
         }
       }
     } else if (currentTool === 'measure' || currentTool === 'router') {
@@ -393,18 +447,29 @@ const FloorPlan = (() => {
       const dx = Math.abs(drawEnd.x - drawStart.x);
       const dy = Math.abs(drawEnd.y - drawStart.y);
       if (dx > 3 || dy > 3) {
-        drawingShapes.push({
-          type: currentTool,
-          x1: drawStart.x, y1: drawStart.y,
-          x2: drawEnd.x, y2: drawEnd.y,
-          color: drawColor,
-          width: drawWidth
-        });
-        isDrawing = false;
-        drawStart = null;
-        drawEnd = null;
-        renderDrawing();
-        onDrawingChange();
+        const shapeId = 'shape_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+        const name = currentTool === 'draw-rect' ? prompt('Dikdörtgen Oda İsmini Girin (Örn: Salon, Mutfak):') : null;
+        if (currentTool !== 'draw-rect' || name !== null) {
+          drawingShapes.push({
+            id: shapeId,
+            type: currentTool,
+            x1: drawStart.x, y1: drawStart.y,
+            x2: drawEnd.x, y2: drawEnd.y,
+            color: drawColor,
+            width: drawWidth,
+            text: currentTool === 'draw-rect' ? (name.trim() || `Oda ${drawingShapes.length + 1}`) : ''
+          });
+          isDrawing = false;
+          drawStart = null;
+          drawEnd = null;
+          renderDrawing();
+          onDrawingChange();
+        } else {
+          isDrawing = false;
+          drawStart = null;
+          drawEnd = null;
+          renderDrawing();
+        }
       } else {
         isDrawing = false;
         drawStart = null;
@@ -419,6 +484,18 @@ const FloorPlan = (() => {
     const mx = e.clientX - rect.left;
     const my = e.clientY - rect.top;
     const canvasPos = screenToCanvas(mx, my);
+
+    // Oda (şekil) çift tıklama kontrolü — polygon çizim modu hariç
+    if (currentTool !== 'room-polygon') {
+      const shapeHit = hitTestShape(canvasPos.x, canvasPos.y);
+      if (shapeHit) {
+        selectShape(shapeHit.id);
+        if (onShapeDoubleClick) {
+          onShapeDoubleClick(shapeHit.id, e.clientX, e.clientY);
+        }
+        return;
+      }
+    }
 
     if (currentTool === 'select' && typeof Survey !== 'undefined') {
       Survey.hitTestPin(canvasPos.x, canvasPos.y);
@@ -561,6 +638,7 @@ const FloorPlan = (() => {
   function addTextShape(x, y, text) {
     if (!text) return;
     drawingShapes.push({
+      id: 'shape_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
       type: 'draw-text',
       x1: x, y1: y,
       x2: x, y2: y,
@@ -622,7 +700,12 @@ const FloorPlan = (() => {
   }
 
   function setDrawingData(shapes) {
-    drawingShapes = shapes || [];
+    drawingShapes = (shapes || []).map(shape => {
+      if (!shape.id) {
+        shape.id = 'shape_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+      }
+      return shape;
+    });
     renderDrawing();
   }
 
@@ -635,6 +718,7 @@ const FloorPlan = (() => {
     if (name !== null) {
       const roomName = name.trim() || `Oda ${drawingShapes.length + 1}`;
       drawingShapes.push({
+        id: 'shape_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
         type: 'room-polygon',
         vertices: [...polygonVertices],
         color: drawColor,
@@ -653,6 +737,80 @@ const FloorPlan = (() => {
     polygonVertices = [];
     drawEnd = null;
     renderDrawing();
+  }
+
+  function hitTestShape(cx, cy) {
+    for (let i = drawingShapes.length - 1; i >= 0; i--) {
+      const shape = drawingShapes[i];
+      if (shape.type === 'draw-rect') {
+        const xMin = Math.min(shape.x1, shape.x2);
+        const xMax = Math.max(shape.x1, shape.x2);
+        const yMin = Math.min(shape.y1, shape.y2);
+        const yMax = Math.max(shape.y1, shape.y2);
+        if (cx >= xMin && cx <= xMax && cy >= yMin && cy <= yMax) {
+          return shape;
+        }
+      } else if (shape.type === 'room-polygon') {
+        if (isPointInPolygon({ x: cx, y: cy }, shape.vertices)) {
+          return shape;
+        }
+      }
+    }
+    return null;
+  }
+
+  function selectShape(id) {
+    selectedShapeId = id;
+    renderDrawing();
+    if (typeof Survey !== 'undefined') {
+      if (id) {
+        Survey.selectMeasurement(id);
+      } else {
+        if (Survey.getSelectedId() && Survey.getSelectedId().startsWith('shape_')) {
+          Survey.selectMeasurement(null);
+        }
+      }
+    }
+  }
+
+  function removeShape(id) {
+    drawingShapes = drawingShapes.filter(s => s.id !== id);
+    if (selectedShapeId === id) selectShape(null);
+    renderDrawing();
+    onDrawingChange();
+  }
+
+  function updateShapeLabel(id, label) {
+    const shape = drawingShapes.find(s => s.id === id);
+    if (shape) {
+      shape.text = label;
+      renderDrawing();
+      onDrawingChange();
+    }
+  }
+
+  function isPointInPolygon(p, polygon) {
+    let isInside = false;
+    let minX = polygon[0].x, maxX = polygon[0].x;
+    let minY = polygon[0].y, maxY = polygon[0].y;
+    for (let n = 1; n < polygon.length; n++) {
+      let q = polygon[n];
+      minX = Math.min(q.x, minX);
+      maxX = Math.max(q.x, maxX);
+      minY = Math.min(q.y, minY);
+      maxY = Math.max(q.y, maxY);
+    }
+    if (p.x < minX || p.x > maxX || p.y < minY || p.y > maxY) {
+      return false;
+    }
+    let i = 0, j = polygon.length - 1;
+    for (i = 0; i < polygon.length; j = i++) {
+      if ( (polygon[i].y > p.y) !== (polygon[j].y > p.y) &&
+           (p.x < (polygon[j].x - polygon[i].x) * (p.y - polygon[i].y) / (polygon[j].y - polygon[i].y) + polygon[i].x) ) {
+        isInside = !isInside;
+      }
+    }
+    return isInside;
   }
 
   function hexToRgba(hex, alpha) {
@@ -684,6 +842,9 @@ const FloorPlan = (() => {
     addTextShape,
     completePolygon,
     cancelPolygon,
+    selectShape,
+    removeShape,
+    updateShapeLabel,
     zoomIn,
     zoomOut,
     zoomFit,
@@ -696,6 +857,13 @@ const FloorPlan = (() => {
     getImageSize,
     getDrawingData,
     setDrawingData,
+    hitTestShape,
+    setRoomsVisible: (visible) => { roomsVisible = visible; renderDrawing(); },
+    clearAllRooms: () => {
+      drawingShapes = drawingShapes.filter(s => s.type !== 'draw-rect' && s.type !== 'room-polygon');
+      renderDrawing();
+      if (onDrawingChange) onDrawingChange();
+    },
     getCanvasSize: () => ({ width: canvasWidth, height: canvasHeight })
   };
 })();

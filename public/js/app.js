@@ -20,7 +20,8 @@ const App = (() => {
     FloorPlan.init({
       onTransformChange: handleTransformChange,
       onCanvasClick: handleCanvasClick,
-      onDrawingChange: triggerAutosave
+      onDrawingChange: triggerAutosave,
+      onShapeDoubleClick: handleShapeDoubleClick
     });
     Survey.init();
     HeatmapEngine.init();
@@ -44,6 +45,10 @@ const App = (() => {
 
     // Load projects
     loadProjectsList();
+
+    // Mobile & device setup
+    setupDeviceBadge();
+    bindMobileControls();
 
     console.log('WifiMapper booted ✓');
   }
@@ -276,6 +281,31 @@ const App = (() => {
     if (pinsCheck) {
       pinsCheck.addEventListener('change', (e) => Survey.setPinsVisible(e.target.checked));
     }
+
+    const roomsCheck = document.getElementById('rooms-visible');
+    if (roomsCheck) {
+      roomsCheck.addEventListener('change', (e) => FloorPlan.setRoomsVisible(e.target.checked));
+    }
+
+    const routersCheck = document.getElementById('routers-visible');
+    if (routersCheck) {
+      routersCheck.addEventListener('change', (e) => Survey.setRoutersVisible(e.target.checked));
+    }
+
+    // Tüm Odaları Sil butonu
+    document.getElementById('btn-clear-all-rooms')?.addEventListener('click', () => {
+      const shapes = FloorPlan.getDrawingData() || [];
+      const roomCount = shapes.filter(s => s.type === 'draw-rect' || s.type === 'room-polygon').length;
+      if (roomCount === 0) {
+        showStatus('Silinecek oda bulunamadı');
+        return;
+      }
+      if (confirm(`${roomCount} adet oda silinecek. Emin misiniz?`)) {
+        FloorPlan.clearAllRooms();
+        triggerAutosave();
+        showStatus(`${roomCount} oda silindi`);
+      }
+    });
   }
 
   // ─── Zoom Controls ────────────────────────────────────
@@ -970,6 +1000,14 @@ const App = (() => {
         triggerAutosave();
       }
     });
+
+    // Oda ismi anlık güncelleme
+    document.getElementById('measurement-label')?.addEventListener('input', (e) => {
+      const id = Survey.getSelectedId();
+      if (id && id.startsWith('shape_')) {
+        FloorPlan.updateShapeLabel(id, e.target.value);
+      }
+    });
   }
 
   // ─── Text Input Modal (for drawing) ───────────────────
@@ -983,6 +1021,112 @@ const App = (() => {
         input.value = '';
         input.focus();
       }
+    }
+  }
+
+  // ─── Room Context Menu (Çift Tıklama) ─────────────────
+  function handleShapeDoubleClick(shapeId, screenX, screenY) {
+    showRoomContextMenu(shapeId, screenX, screenY);
+  }
+
+  function showRoomContextMenu(shapeId, screenX, screenY) {
+    closeRoomContextMenu();
+
+    const shapes = FloorPlan.getDrawingData();
+    const shape = shapes.find(s => s.id === shapeId);
+    if (!shape) return;
+
+    const menu = document.createElement('div');
+    menu.id = 'room-context-menu';
+    menu.style.cssText = `
+      position: fixed; left: ${screenX}px; top: ${screenY}px; z-index: 10000;
+      background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(99,102,241,0.35);
+      border-radius: 10px; padding: 6px 0; min-width: 200px;
+      box-shadow: 0 12px 35px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.05);
+      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+      opacity: 0; transform: scale(0.95); transition: opacity 0.12s, transform 0.12s;
+    `;
+
+    const header = document.createElement('div');
+    header.style.cssText = `
+      padding: 8px 16px 6px; font-size: 0.72rem; color: rgba(255,255,255,0.4);
+      text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;
+      border-bottom: 1px solid rgba(255,255,255,0.06); margin-bottom: 4px;
+    `;
+    header.textContent = shape.text || 'Oda';
+    menu.appendChild(header);
+
+    const menuItems = [
+      { icon: '✏️', text: 'İsmi Değiştir', action: 'rename' },
+      { icon: '🗑️', text: 'Odayı Sil', action: 'delete', danger: true }
+    ];
+
+    menuItems.forEach(item => {
+      const btn = document.createElement('button');
+      btn.style.cssText = `
+        display: flex; align-items: center; gap: 10px; width: 100%; padding: 9px 16px;
+        background: transparent; border: none; font-size: 0.85rem;
+        cursor: pointer; text-align: left; font-family: Inter, sans-serif;
+        color: ${item.danger ? '#f87171' : '#e2e8f0'}; transition: background 0.1s;
+      `;
+      btn.innerHTML = `<span style="font-size: 1rem;">${item.icon}</span> ${item.text}`;
+      btn.addEventListener('mouseenter', () => {
+        btn.style.background = item.danger ? 'rgba(239, 68, 68, 0.1)' : 'rgba(99,102,241,0.15)';
+      });
+      btn.addEventListener('mouseleave', () => {
+        btn.style.background = 'transparent';
+      });
+      btn.addEventListener('click', () => {
+        closeRoomContextMenu();
+        if (item.action === 'rename') {
+          const newName = prompt('Oda İsmini Girin:', shape.text || '');
+          if (newName !== null) {
+            FloorPlan.updateShapeLabel(shapeId, newName.trim() || shape.text);
+            Survey.selectMeasurement(shapeId);
+            triggerAutosave();
+            showStatus('Oda ismi güncellendi: ' + (newName.trim() || shape.text));
+          }
+        } else if (item.action === 'delete') {
+          if (confirm('"' + (shape.text || 'Bu oda') + '" silinsin mi?')) {
+            Survey.removeMeasurement(shapeId);
+            triggerAutosave();
+            showStatus('Oda silindi');
+          }
+        }
+      });
+      menu.appendChild(btn);
+    });
+
+    document.body.appendChild(menu);
+
+    // Animasyonlu açılma
+    requestAnimationFrame(() => {
+      menu.style.opacity = '1';
+      menu.style.transform = 'scale(1)';
+      const rect = menu.getBoundingClientRect();
+      if (rect.right > window.innerWidth) {
+        menu.style.left = (window.innerWidth - rect.width - 10) + 'px';
+      }
+      if (rect.bottom > window.innerHeight) {
+        menu.style.top = (window.innerHeight - rect.height - 10) + 'px';
+      }
+    });
+
+    setTimeout(() => {
+      document.addEventListener('click', closeRoomContextMenuOutside);
+    }, 50);
+  }
+
+  function closeRoomContextMenu() {
+    const menu = document.getElementById('room-context-menu');
+    if (menu) menu.remove();
+    document.removeEventListener('click', closeRoomContextMenuOutside);
+  }
+
+  function closeRoomContextMenuOutside(e) {
+    const menu = document.getElementById('room-context-menu');
+    if (menu && !menu.contains(e.target)) {
+      closeRoomContextMenu();
     }
   }
 
@@ -1056,10 +1200,13 @@ const App = (() => {
           channel24 = null;
         }
 
-        Survey.addRouter(pendingRouterPos.x, pendingRouterPos.y, name, band, channel, channel24);
+        const isMesh = document.getElementById('router-mesh')?.checked || false;
+        Survey.addRouter(pendingRouterPos.x, pendingRouterPos.y, name, band, channel, channel24, isMesh);
         triggerAutosave();
 
         nameInput.value = '';
+        const meshCheckbox = document.getElementById('router-mesh');
+        if (meshCheckbox) meshCheckbox.checked = false;
         document.getElementById('modal-router-overlay').style.display = 'none';
         pendingRouterPos = null;
       }
@@ -1200,18 +1347,115 @@ const App = (() => {
       </div>
     `;
 
+    // --- MESH SISTEM BILGISI ---
+    const hasMesh = routers.some(r => r.isMesh);
+    if (hasMesh) {
+      const meshCount = routers.filter(r => r.isMesh).length;
+      reportHtml += `
+        <div style="padding: 10px 14px; background: rgba(139, 92, 246, 0.06); border: 1px solid rgba(139, 92, 246, 0.2); border-radius: 6px; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; font-size: 0.82rem; color: rgba(255,255,255,0.7);">
+          <span style="font-size: 1.1rem;">🔗</span>
+          <span><strong>${meshCount}</strong> cihaz <strong>Mesh Sistem</strong> olarak işaretlenmiş. Aynı kanal ve SSID kullanımı Mesh ağlar için normaldir, bu cihazlar arası çakışma uyarıları devre dışı bırakıldı.</span>
+        </div>
+      `;
+    }
+
+    // --- ODA BAZLI ANALIZ ---
+    const drawingShapes = FloorPlan.getDrawingData() || [];
+    const rooms = drawingShapes.filter(s => s.type === 'draw-rect' || s.type === 'room-polygon');
+
+    if (rooms.length > 0) {
+      reportHtml += `<h4 style="margin: 0 0 12px 0; color: #f3e8ff; font-size: 1rem; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 6px;">🏠 Oda Bazlı WiFi Durumu</h4>`;
+      reportHtml += `<div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px;">`;
+
+      const isPointInPoly = (p, polygon) => {
+        let isInside = false;
+        let i = 0, j = polygon.length - 1;
+        for (i = 0; i < polygon.length; j = i++) {
+          if ((polygon[i].y > p.y) !== (polygon[j].y > p.y) &&
+              (p.x < (polygon[j].x - polygon[i].x) * (p.y - polygon[i].y) / (polygon[j].y - polygon[i].y) + polygon[i].x)) {
+            isInside = !isInside;
+          }
+        }
+        return isInside;
+      };
+
+      rooms.forEach(room => {
+        const roomMeasurements = measurements.filter(m => {
+          if (room.type === 'draw-rect') {
+            const xMin = Math.min(room.x1, room.x2);
+            const xMax = Math.max(room.x1, room.x2);
+            const yMin = Math.min(room.y1, room.y2);
+            const yMax = Math.max(room.y1, room.y2);
+            return m.x >= xMin && m.x <= xMax && m.y >= yMin && m.y <= yMax;
+          } else if (room.type === 'room-polygon' && room.vertices) {
+            return isPointInPoly({x: m.x, y: m.y}, room.vertices);
+          }
+          return false;
+        });
+
+        const count = roomMeasurements.length;
+        const roomSignals = roomMeasurements.map(m => m.wifi ? m.wifi.signal : null).filter(s => s !== null);
+        const avgSig = roomSignals.length > 0 ? Math.round(roomSignals.reduce((a, b) => a + b, 0) / roomSignals.length) : null;
+
+        let statusText, statusColor, statusIcon;
+        if (count === 0) {
+          statusText = 'Ölçüm Yok'; statusColor = '#94a3b8'; statusIcon = '⚪';
+        } else if (avgSig >= -60) {
+          statusText = 'Mükemmel'; statusColor = '#10b981'; statusIcon = '🟢';
+        } else if (avgSig >= -68) {
+          statusText = 'İyi'; statusColor = '#06b6d4'; statusIcon = '🔵';
+        } else if (avgSig >= -75) {
+          statusText = 'Orta'; statusColor = '#fbbf24'; statusIcon = '🟡';
+        } else {
+          statusText = 'Zayıf'; statusColor = '#ef4444'; statusIcon = '🔴';
+        }
+
+        reportHtml += `
+          <div style="flex: 1; min-width: 140px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); padding: 12px; border-radius: 8px; text-align: center;">
+            <div style="font-size: 0.78rem; color: rgba(255,255,255,0.5); margin-bottom: 2px;">${room.text || 'İsimsiz Oda'}</div>
+            <div style="font-size: 1.1rem; font-weight: 700; color: ${statusColor}; margin-bottom: 4px;">${statusIcon} ${statusText}</div>
+            <div style="font-size: 0.7rem; color: rgba(255,255,255,0.4);">${count} ölçüm${avgSig !== null ? ' · Ort: ' + avgSig + ' dBm' : ''}</div>
+          </div>
+        `;
+
+        if (count === 0) {
+          issues.push({
+            severity: 'warning',
+            title: `${room.text || 'İsimsiz Oda'}: Ölçüm Yapılmadı`,
+            desc: `<strong>${room.text || 'İsimsiz Oda'}</strong> odasında henüz hiçbir WiFi ölçümü yapılmamış. Bu odadaki kapsama durumu bilinmiyor.`,
+            rec: `Bu odanın içine birkaç farklı noktadan ölçüm yaparak kapsama kalitesini belirleyin.`
+          });
+        } else if (avgSig < -72) {
+          issues.push({
+            severity: 'warning',
+            title: `${room.text || 'İsimsiz Oda'}: Zayıf WiFi Sinyali`,
+            desc: `<strong>${room.text || 'İsimsiz Oda'}</strong> odasında ortalama sinyal güçü <strong>${avgSig} dBm</strong> seviyesinde ölçüldü. Bu seviye stabil bir bağlantı için yetersiz kalabilir.`,
+            rec: `Modem/AP cihazını bu odaya daha yakın konumlandırın veya bir WiFi genişletici (Mesh/Extender) yerleştirin.`
+          });
+        }
+      });
+
+      reportHtml += `</div>`;
+    } else {
+      reportHtml += `
+        <div style="padding: 12px; background: rgba(99, 102, 241, 0.05); border: 1px dashed rgba(99,102,241,0.2); border-radius: 6px; margin-bottom: 20px; text-align: center; font-size: 0.82rem; color: rgba(255,255,255,0.5);">
+          💡 <strong>İpucu:</strong> Sol araçlardan "Dikdörtgen Çiz" veya "Köşeleri Belirle" ile odalarınızı çizerek oda bazlı analiz yapabilirsiniz.
+        </div>
+      `;
+    }
+
     // --- 2. INTERFERENCE / CHANNEL OVERLAP DETECTION ---
     const logical24 = [];
     const logical5 = [];
 
     routers.forEach(r => {
       if (r.band === '2.4GHz') {
-        logical24.push({ name: r.name, channel: r.channel });
+        logical24.push({ name: r.name, channel: r.channel, isMesh: r.isMesh });
       } else if (r.band === '5GHz') {
-        logical5.push({ name: r.name, channel: r.channel });
+        logical5.push({ name: r.name, channel: r.channel, isMesh: r.isMesh });
       } else if (r.band === '5GHz+2.4GHz') {
-        logical5.push({ name: r.name + ' (5 GHz)', channel: r.channel });
-        logical24.push({ name: r.name + ' (2.4 GHz)', channel: r.channel24 || 6 });
+        logical5.push({ name: r.name + ' (5 GHz)', channel: r.channel, isMesh: r.isMesh });
+        logical24.push({ name: r.name + ' (2.4 GHz)', channel: r.channel24 || 6, isMesh: r.isMesh });
       }
     });
 
@@ -1221,6 +1465,7 @@ const App = (() => {
         const r1 = logical24[i];
         const r2 = logical24[j];
         const diff = Math.abs(r1.channel - r2.channel);
+        if (r1.isMesh && r2.isMesh) continue; // Mesh cihazlar aynı kanalı paylaşır
         if (diff < 5) {
           issues.push({
             severity: 'critical',
@@ -1237,6 +1482,7 @@ const App = (() => {
       for (let j = i + 1; j < logical5.length; j++) {
         const r1 = logical5[i];
         const r2 = logical5[j];
+        if (r1.isMesh && r2.isMesh) continue; // Mesh cihazlar aynı kanalı paylaşır
         if (r1.channel === r2.channel) {
           issues.push({
             severity: 'warning',
@@ -1401,6 +1647,96 @@ const App = (() => {
         }
       }, 500);
     }, 2000);
+  }
+
+  // ─── Device Detection & Badge ─────────────────────────
+  function setupDeviceBadge() {
+    const badge = document.getElementById('device-badge');
+    if (!badge) return;
+
+    const ua = navigator.userAgent;
+    const isMobile = /iPhone|iPad|iPod|Android|webOS|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+    const isTablet = /iPad|Android(?!.*Mobile)/i.test(ua);
+
+    let deviceIcon, deviceText;
+    if (isMobile && !isTablet) {
+      deviceIcon = '📱';
+      deviceText = 'Mobil';
+      badge.className = 'device-badge mobile';
+    } else if (isTablet) {
+      deviceIcon = '📱';
+      deviceText = 'Tablet';
+      badge.className = 'device-badge mobile';
+    } else {
+      deviceIcon = '💻';
+      deviceText = 'Desktop';
+      badge.className = 'device-badge desktop';
+    }
+
+    badge.innerHTML = `${deviceIcon} ${deviceText}`;
+  }
+
+  // ─── Mobile Controls ──────────────────────────────────
+  function bindMobileControls() {
+    const isMobileView = () => window.innerWidth <= 768;
+    if (!isMobileView()) return;
+
+    const toolbar = document.getElementById('toolbar');
+    const details = document.getElementById('details-panel');
+    const backdrop = document.getElementById('mobile-backdrop');
+
+    function closePanels() {
+      toolbar?.classList.remove('mobile-open');
+      details?.classList.remove('mobile-open');
+      backdrop?.classList.remove('active');
+    }
+
+    // Backdrop click closes panels
+    backdrop?.addEventListener('click', closePanels);
+
+    // FAB: Tools
+    document.getElementById('fab-tools')?.addEventListener('click', () => {
+      const isOpen = toolbar?.classList.contains('mobile-open');
+      closePanels();
+      if (!isOpen) {
+        toolbar?.classList.add('mobile-open');
+        backdrop?.classList.add('active');
+      }
+    });
+
+    // FAB: Measure
+    document.getElementById('fab-measure')?.addEventListener('click', () => {
+      closePanels();
+      // Activate measure tool
+      document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+      const measureBtn = document.querySelector('.tool-btn[data-tool="measure"]');
+      if (measureBtn) {
+        measureBtn.classList.add('active');
+        FloorPlan.setTool('measure');
+        showStatus('Ölçüm modu: Haritaya tıklayarak ölçüm noktası ekleyin');
+      }
+    });
+
+    // FAB: Zoom
+    document.getElementById('fab-zoom-in')?.addEventListener('click', () => FloorPlan.zoomIn());
+    document.getElementById('fab-zoom-out')?.addEventListener('click', () => FloorPlan.zoomOut());
+
+    // FAB: Details
+    document.getElementById('fab-details')?.addEventListener('click', () => {
+      const isOpen = details?.classList.contains('mobile-open');
+      closePanels();
+      if (!isOpen) {
+        details?.classList.add('mobile-open');
+        backdrop?.classList.add('active');
+      }
+    });
+
+    // Also handle window resize
+    window.addEventListener('resize', () => {
+      if (!isMobileView()) {
+        closePanels();
+      }
+    });
   }
 
   // ─── Public API ────────────────────────────────────────

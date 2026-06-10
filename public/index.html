@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="description" content="WifiMapper — Ev WiFi kapsama alanı ve hız haritası oluşturma aracı. Ücretsiz NetSpot alternatifi.">
   <title>WifiMapper — WiFi Heatmap & Survey</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -34,6 +34,7 @@
         <span class="status-dot offline"></span>
         <span class="status-text">Bağlantı bekleniyor…</span>
       </div>
+      <span id="device-badge" class="device-badge desktop"></span>
     </div>
   </header>
 
@@ -56,13 +57,13 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><circle cx="6" cy="6" r="1" fill="currentColor"/><circle cx="18" cy="6" r="1" fill="currentColor"/><circle cx="6" cy="18" r="1" fill="currentColor"/><circle cx="18" cy="18" r="1" fill="currentColor"/><path d="M12 2v4M12 14v4"/></svg>
             <span>Modem/AP</span>
           </button>
-          <button class="tool-btn" data-tool="draw-rect" title="Oda Çiz">
+          <button class="tool-btn" data-tool="draw-rect" title="Dikdörtgen Oda Çiz">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="1"/></svg>
-            <span>Oda</span>
+            <span>Dikdörtgen Çiz</span>
           </button>
-          <button class="tool-btn" data-tool="room-polygon" title="Oda Belirle">
+          <button class="tool-btn" data-tool="room-polygon" title="Köşeleri Belirle (Serbest Oda)">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12,2 22,9 17,22 7,22 2,9"/></svg>
-            <span>Oda Belirle</span>
+            <span>Köşeleri Belirle</span>
           </button>
           <button class="tool-btn" data-tool="draw-line" title="Duvar Çiz">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="20" x2="20" y2="4"/></svg>
@@ -77,6 +78,7 @@
             <span>Sil</span>
           </button>
         </div>
+        <button id="btn-clear-all-rooms" class="btn btn-sm" style="width: 100%; margin-top: 8px; font-size: 0.75rem; padding: 5px 8px; background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.2); color: #f87171; cursor: pointer; border-radius: 6px;">🗑️ Tüm Odaları Sil</button>
       </div>
 
       <div class="toolbar-section">
@@ -139,8 +141,16 @@
             <input type="range" id="heatmap-opacity" min="10" max="90" value="55">
           </label>
           <label class="checkbox-label">
-            <input type="checkbox" id="pins-visible" checked>
+            <input type="checkbox" id="pins-visible">
             Pin'leri Göster
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" id="routers-visible" checked>
+            Modemleri Göster
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" id="rooms-visible" checked>
+            Odaları Göster
           </label>
         </div>
       </div>
@@ -394,6 +404,13 @@
         <label for="router-channel">Kanal Numarası</label>
         <input type="number" id="router-channel" placeholder="Örn: 36, 6, 11" min="1" max="200" value="36">
       </div>
+      <div class="form-group" style="margin-bottom: 12px;">
+        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.85rem;">
+          <input type="checkbox" id="router-mesh" style="width: 16px; height: 16px; accent-color: #8b5cf6; cursor: pointer;">
+          <span>🔗 Mesh Sistem Cihazı</span>
+        </label>
+        <p style="font-size: 0.7rem; color: rgba(255,255,255,0.35); margin: 4px 0 0 24px; line-height: 1.4;">Bu cihaz bir Mesh ağın parçasıysa (Örn: TP-Link Deco, Google Nest) işaretleyin. Aynı kanal/SSID uyarıları devre dışı kalır.</p>
+      </div>
       <div class="form-group" id="router-dual-channels-group" style="display:none; gap: 10px; flex-direction: row; margin-bottom: 15px;">
         <div style="flex: 1; text-align: left;">
           <label for="router-channel-5">5 GHz Kanalı</label>
@@ -428,6 +445,20 @@
         <button id="btn-ok-ai" class="btn btn-sm btn-primary">Tamam</button>
       </div>
     </div>
+  </div>
+
+  <!-- Mobile Backdrop -->
+  <div id="mobile-backdrop" class="mobile-backdrop"></div>
+
+  <!-- Mobile Floating Toolbar -->
+  <div id="mobile-fab" class="mobile-fab-toolbar">
+    <button id="fab-tools" title="Araçlar">🛠️</button>
+    <button id="fab-measure" title="Ölçüm">📡</button>
+    <div class="fab-divider"></div>
+    <button id="fab-zoom-in" title="Yakınlaştır">＋</button>
+    <button id="fab-zoom-out" title="Uzaklaştır">−</button>
+    <div class="fab-divider"></div>
+    <button id="fab-details" title="Detaylar">📋</button>
   </div>
 
   <!-- Scripts -->

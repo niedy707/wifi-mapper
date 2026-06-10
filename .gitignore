@@ -3,3 +3,4 @@ wifi_scanner
 *.log
 .DS_Store
 .vercel/
+.vercel

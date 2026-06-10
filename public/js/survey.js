@@ -8,7 +8,8 @@ const Survey = (() => {
   let selectedId = null;
   let hoveredId = null;
   let canvas, ctx;
-  let pinsVisible = true;
+  let pinsVisible = false;
+  let routersVisible = true;
 
   const PIN_RADIUS = 8;
   const PIN_HIT_RADIUS = 14;
@@ -37,7 +38,7 @@ const Survey = (() => {
       x: Math.round(x),
       y: Math.round(y),
       timestamp: new Date().toISOString(),
-      label: label || `Nokta ${measurements.length + 1}`,
+      label: label || `${measurements.length + 1}`,
       wifi: wifiData || null,
       speed: speedData || null,
       bands: bands
@@ -53,7 +54,7 @@ const Survey = (() => {
   }
 
   // ─── Add Router / AP ───────────────────────────────────
-  function addRouter(x, y, name, band, channel, channel24) {
+  function addRouter(x, y, name, band, channel, channel24, isMesh) {
     const id = 'router_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
     const router = {
       id,
@@ -62,7 +63,8 @@ const Survey = (() => {
       name: name || `Cihaz ${routers.length + 1}`,
       band: band || '5GHz',
       channel: parseInt(channel) || 36,
-      channel24: band === '5GHz+2.4GHz' ? (parseInt(channel24) || 6) : null
+      channel24: band === '5GHz+2.4GHz' ? (parseInt(channel24) || 6) : null,
+      isMesh: !!isMesh
     };
     routers.push(router);
     selectedId = id;
@@ -75,6 +77,8 @@ const Survey = (() => {
   function removeMeasurement(id) {
     if (id && id.startsWith('router_')) {
       routers = routers.filter(r => r.id !== id);
+    } else if (id && id.startsWith('shape_')) {
+      if (typeof FloorPlan !== 'undefined') FloorPlan.removeShape(id);
     } else {
       measurements = measurements.filter(m => m.id !== id);
     }
@@ -97,6 +101,10 @@ const Survey = (() => {
       const r = routers.find(r => r.id === id);
       if (r) {
         r.name = label;
+      }
+    } else if (id && id.startsWith('shape_')) {
+      if (typeof FloorPlan !== 'undefined') {
+        FloorPlan.updateShapeLabel(id, label);
       }
     } else {
       const m = measurements.find(m => m.id === id);
@@ -226,13 +234,14 @@ const Survey = (() => {
     if (!ctx || !canvas) return;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    if (!pinsVisible) return;
+    if (!pinsVisible && !routersVisible) return;
 
     const transform = FloorPlan.getTransform();
     const s = transform.scale;
     const ox = transform.offsetX;
     const oy = transform.offsetY;
 
+    if (pinsVisible) {
     measurements.forEach(m => {
       const sx = m.x * s + ox;
       const sy = m.y * s + oy;
@@ -278,8 +287,8 @@ const Survey = (() => {
       ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
       ctx.fill();
 
-      // Label
-      if (m.label && s > 0.3) {
+      // Label (sadece seçili veya hover'da göster)
+      if (m.label && s > 0.3 && (isSelected || isHovered)) {
         ctx.font = `600 ${Math.max(9, 11 / Math.max(s, 0.5))}px Inter, sans-serif`;
         ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
         ctx.textAlign = 'center';
@@ -305,8 +314,10 @@ const Survey = (() => {
         ctx.textAlign = 'left';
       }
     });
+    } // end pinsVisible
 
     // Render Routers / APs
+    if (routersVisible) {
     routers.forEach(r => {
       const sx = r.x * s + ox;
       const sy = r.y * s + oy;
@@ -340,8 +351,8 @@ const Survey = (() => {
       ctx.fillText('AP', sx, sy + 3);
       ctx.textAlign = 'left';
 
-      // Label (Router Name, Channel, Band)
-      if (r.name && s > 0.3) {
+      // Label (sadece seçili veya hover'da göster)
+      if (r.name && s > 0.3 && (isSelected || isHovered)) {
         ctx.font = `bold ${Math.max(9, 11 / Math.max(s, 0.5))}px Inter, sans-serif`;
         ctx.fillStyle = '#d8b4fe';
         ctx.textAlign = 'center';
@@ -357,6 +368,7 @@ const Survey = (() => {
         ctx.textAlign = 'left';
       }
     });
+    } // end routersVisible
   }
 
   function roundRect(ctx, x, y, w, h, r) {
@@ -413,6 +425,12 @@ const Survey = (() => {
             <span style="color: rgba(255,255,255,0.6);">Çalışma Bandı</span>
             <span style="font-weight: 600; color: #a5b4fc;">${r.band === '5GHz+2.4GHz' ? 'Çift Bant (5GHz + 2.4GHz)' : r.band}</span>
           </div>
+          ${r.isMesh ? `
+          <div class="info-row" style="font-size: 0.8rem; margin-bottom: 6px; display: flex; justify-content: space-between;">
+            <span style="color: rgba(255,255,255,0.6);">Ağ Tipi</span>
+            <span style="font-weight: 600; color: #8b5cf6;">🔗 Mesh Sistem</span>
+          </div>
+          ` : ''}
           ${r.band === '5GHz+2.4GHz' ? `
           <div class="info-row" style="font-size: 0.8rem; margin-bottom: 6px; display: flex; justify-content: space-between;">
             <span style="color: rgba(255,255,255,0.6);">5 GHz Kanalı</span>
@@ -431,6 +449,42 @@ const Survey = (() => {
         </div>
         <p style="font-size: 0.72rem; color: rgba(255,255,255,0.45); line-height: 1.45; margin: 0 0 10px 0; font-weight: 300;">
           Bu cihazın yerleşimi, kat planındaki ölçüm noktalarının sinyal seviyeleri ile karşılaştırılarak Yapay Zeka Ağ Analizi raporunda çakışma ve kapsama sorunlarını tespit etmek için kullanılacaktır.
+        </p>
+      `;
+      return;
+    }
+
+    if (id.startsWith('shape_')) {
+      const shapes = typeof FloorPlan !== 'undefined' ? FloorPlan.getDrawingData() : [];
+      const shape = shapes.find(s => s.id === id);
+      if (!shape) return;
+
+      if (emptyEl) emptyEl.style.display = 'none';
+      if (detailEl) detailEl.style.display = 'block';
+      if (remeasureBtn) remeasureBtn.style.display = 'none';
+
+      const labelEl = document.getElementById('measurement-label');
+      if (labelEl) labelEl.value = shape.text || '';
+
+      const roomType = shape.type === 'draw-rect' ? 'Dikdörtgen Oda' : 'Köşeli Oda';
+      const cornerCount = shape.type === 'room-polygon' && shape.vertices ? shape.vertices.length : 4;
+
+      bodyEl.innerHTML = `
+        <div style="background: rgba(99, 102, 241, 0.08); padding: 12px; border-radius: 6px; border: 1px solid rgba(99, 102, 241, 0.3); margin-bottom: 12px; text-align: left;">
+          <h4 style="margin: 0 0 8px 0; color: #a5b4fc; font-size: 0.95rem; font-weight: 600; display: flex; align-items: center; gap: 6px;">
+            <span>🏠</span> Oda Detayları
+          </h4>
+          <div class="info-row" style="font-size: 0.8rem; margin-bottom: 6px; display: flex; justify-content: space-between;">
+            <span style="color: rgba(255,255,255,0.6);">Oda Tipi</span>
+            <span style="font-weight: 600; color: #a5b4fc;">${roomType}</span>
+          </div>
+          <div class="info-row" style="font-size: 0.8rem; display: flex; justify-content: space-between;">
+            <span style="color: rgba(255,255,255,0.6);">Köşe Sayısı</span>
+            <span style="font-weight: 600; color: #34d399;">${cornerCount}</span>
+          </div>
+        </div>
+        <p style="font-size: 0.72rem; color: rgba(255,255,255,0.45); line-height: 1.45; margin: 0; font-weight: 300;">
+          Odanın ismini üstteki alandan düzenleyebilirsiniz. Bu oda sınırları yapay zeka analizinde oda bazlı kapsama değerlendirmesi için kullanılacaktır.
         </p>
       `;
       return;
@@ -647,6 +701,11 @@ const Survey = (() => {
     renderPins();
   }
 
+  function setRoutersVisible(visible) {
+    routersVisible = visible;
+    renderPins();
+  }
+
   // ─── Public API ────────────────────────────────────────
   return {
     init,
@@ -664,6 +723,7 @@ const Survey = (() => {
     setMeasurements,
     setRouters,
     setPinsVisible,
+    setRoutersVisible,
     updateUI
   };
 })();

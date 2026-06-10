@@ -315,65 +315,128 @@ const HeatmapEngine = (() => {
     drawLegend(scaleConfig);
   }
 
-  // ─── Legend ────────────────────────────────────────────
+  // ─── Dikey Spektrum Cetveli ─────────────────────────────
   function drawLegend(scaleConfig) {
-    const legendX = canvas.width - 200;
-    const legendY = canvas.height - 120;
-    const legendW = 170;
-    const legendH = 100;
+    const barH = 220;
+    const barW = 14;
+    const padding = 16;
+    const totalW = 180;
+    const totalH = barH + 70;
+    const legendX = canvas.width - totalW - 12;
+    const legendY = canvas.height - totalH - 12;
 
-    // Background
-    ctx.fillStyle = 'rgba(10, 10, 30, 0.8)';
-    ctx.strokeStyle = 'rgba(100, 100, 200, 0.2)';
+    // Background panel
+    ctx.fillStyle = 'rgba(8, 8, 25, 0.88)';
+    ctx.strokeStyle = 'rgba(100, 100, 200, 0.15)';
     ctx.lineWidth = 1;
-    roundRect(ctx, legendX, legendY, legendW, legendH, 10);
+    roundRect(ctx, legendX, legendY, totalW, totalH, 10);
     ctx.fill();
     ctx.stroke();
 
     // Title
-    ctx.fillStyle = '#9898b8';
-    ctx.font = '10px Inter, sans-serif';
-    ctx.fillText(scaleConfig.label, legendX + 10, legendY + 18);
+    ctx.fillStyle = '#b0b0d0';
+    ctx.font = 'bold 10px Inter, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Spektrum Cetveli', legendX + totalW / 2, legendY + 16);
 
-    // Gradient bar
-    const barX = legendX + 10;
-    const barY = legendY + 26;
-    const barW = legendW - 20;
-    const barH = 12;
+    // Column headers
+    ctx.font = '8px Inter, sans-serif';
+    ctx.fillStyle = '#7878a0';
+    ctx.textAlign = 'right';
+    ctx.fillText('dBm', legendX + padding + barW / 2 - 4, legendY + 30);
+    ctx.textAlign = 'left';
+    ctx.fillText('Hız', legendX + padding + barW / 2 + barW + 4, legendY + 30);
 
-    const gradient = ctx.createLinearGradient(barX, 0, barX + barW, 0);
-    const stops = scaleConfig.stops;
-    const range = stops[stops.length - 1].val - stops[0].val;
+    // Vertical gradient bar
+    const barX = legendX + totalW / 2 - barW / 2;
+    const barY = legendY + 36;
 
-    stops.forEach(stop => {
-      const t = (stop.val - stops[0].val) / range;
+    // Draw gradient (top = good, bottom = bad)
+    const gradient = ctx.createLinearGradient(0, barY, 0, barY + barH);
+    const signalStops = COLOR_SCALES.signal.stops;
+    const reversedStops = [...signalStops].reverse(); // Top=excellent, Bottom=terrible
+    reversedStops.forEach((stop, i) => {
+      const t = i / (reversedStops.length - 1);
       gradient.addColorStop(t, `rgb(${stop.r}, ${stop.g}, ${stop.b})`);
     });
-
     ctx.fillStyle = gradient;
-    roundRect(ctx, barX, barY, barW, barH, 3);
+    roundRect(ctx, barX, barY, barW, barH, 4);
     ctx.fill();
 
-    // Labels
-    ctx.fillStyle = '#606080';
-    ctx.font = '9px Inter, sans-serif';
-    ctx.textAlign = 'left';
-    ctx.fillText(`${stops[0].val} ${scaleConfig.unit}`, barX, barY + barH + 14);
-    ctx.textAlign = 'right';
-    ctx.fillText(`${stops[stops.length - 1].val} ${scaleConfig.unit}`, barX + barW, barY + barH + 14);
-    ctx.textAlign = 'left';
+    // Border for bar
+    ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+    ctx.lineWidth = 0.5;
+    roundRect(ctx, barX, barY, barW, barH, 4);
+    ctx.stroke();
 
-    // Band filter badge
+    // Tick marks with dBm (left) and Tx Rate (right)
+    const ticks = [
+      { dBm: -30, rate: '800+',  quality: 'Mükemmel' },
+      { dBm: -40, rate: '600',   quality: '' },
+      { dBm: -50, rate: '400',   quality: '' },
+      { dBm: -55, rate: '300',   quality: 'İyi' },
+      { dBm: -65, rate: '150',   quality: 'Orta' },
+      { dBm: -75, rate: '50',    quality: 'Zayıf' },
+      { dBm: -85, rate: '6-15',  quality: '' },
+      { dBm: -90, rate: '<6',    quality: 'Çok Zayıf' },
+    ];
+
+    const dBmMin = -90;
+    const dBmMax = -30;
+
+    ticks.forEach(tick => {
+      const t = (tick.dBm - dBmMax) / (dBmMin - dBmMax); // 0=top(-30), 1=bottom(-90)
+      const y = barY + t * barH;
+
+      // Tick line
+      ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+      ctx.lineWidth = 0.5;
+      ctx.beginPath();
+      ctx.moveTo(barX - 3, y);
+      ctx.lineTo(barX + barW + 3, y);
+      ctx.stroke();
+
+      // dBm label (left)
+      ctx.font = '9px Inter, sans-serif';
+      ctx.fillStyle = '#a0a0c0';
+      ctx.textAlign = 'right';
+      ctx.fillText(`${tick.dBm}`, barX - 6, y + 3);
+
+      // Tx Rate label (right)
+      ctx.textAlign = 'left';
+      ctx.fillStyle = '#8888b0';
+      ctx.fillText(`${tick.rate}`, barX + barW + 6, y + 3);
+
+      // Quality label (far right, only for key levels)
+      if (tick.quality) {
+        const color = valueToColor(tick.dBm, COLOR_SCALES.signal);
+        ctx.fillStyle = `rgb(${color.r}, ${color.g}, ${color.b})`;
+        ctx.font = 'bold 7px Inter, sans-serif';
+        ctx.fillText(tick.quality, barX + barW + 38, y + 3);
+      }
+    });
+
+    // Unit labels at bottom of columns
+    ctx.font = '7px Inter, sans-serif';
+    ctx.fillStyle = '#606080';
+    ctx.textAlign = 'right';
+    ctx.fillText('(dBm)', barX - 6, barY + barH + 14);
+    ctx.textAlign = 'left';
+    ctx.fillText('(Mbps)', barX + barW + 6, barY + barH + 14);
+
+    // Band filter & point count
     const bandText = bandFilter === 'all' ? 'Tüm Bantlar' : bandFilter;
     ctx.fillStyle = '#7c8cf8';
     ctx.font = '9px Inter, sans-serif';
-    ctx.fillText(`Bant: ${bandText}`, barX, barY + barH + 30);
+    ctx.textAlign = 'center';
+    ctx.fillText(`Bant: ${bandText}`, legendX + totalW / 2, barY + barH + 30);
 
-    // Point count
     const measurements = typeof Survey !== 'undefined' ? Survey.getMeasurements() : [];
     const filteredCount = extractPoints(measurements).length;
     ctx.fillStyle = '#606080';
-    ctx.fillText(`${filteredCount} ölçüm noktası`, barX, barY + barH + 42);
+    ctx.fillText(`${filteredCount} ölçüm noktası`, legendX + totalW / 2, barY + barH + 42);
+
+    ctx.textAlign = 'left';
   }
 
   function roundRect(ctx, x, y, w, h, r) {
