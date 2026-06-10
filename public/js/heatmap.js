@@ -82,8 +82,23 @@ const HeatmapEngine = (() => {
         { val: 50, r: 239, g: 68, b: 68 },     // Red — bad
       ],
       unit: 'ms',
-      label: 'Gecikme',
+      label: 'Latency',
       invert: true
+    },
+    noise: {
+      // Noise: lower (more negative) is better
+      min: -100, max: -60,
+      stops: [
+        { val: -100, r: 6, g: 182, b: 212 },    // Cyan — very quiet
+        { val: -95, r: 16, g: 185, b: 129 },     // Emerald — quiet
+        { val: -90, r: 52, g: 211, b: 153 },     // Green — good
+        { val: -85, r: 251, g: 191, b: 36 },     // Yellow — moderate
+        { val: -75, r: 249, g: 115, b: 22 },     // Orange — noisy
+        { val: -60, r: 239, g: 68, b: 68 },      // Red — very noisy
+      ],
+      unit: 'dBm',
+      label: 'Noise Level',
+      invert: false
     }
   };
 
@@ -213,6 +228,12 @@ const HeatmapEngine = (() => {
           break;
         case 'snr':
           value = targetWifi ? targetWifi.snr : null;
+          break;
+        case 'noise':
+          // noise = signal - snr (macOS reports noise indirectly)
+          value = targetWifi && targetWifi.signal != null && targetWifi.snr != null
+            ? targetWifi.signal - targetWifi.snr
+            : null;
           break;
         case 'latency':
           value = targetSpeed ? targetSpeed.latency : null;

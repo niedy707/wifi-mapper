@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="description" content="WifiMapper — Ev WiFi kapsama alanı ve hız haritası oluşturma aracı. Ücretsiz NetSpot alternatifi.">
+  <meta name="description" content="WifiMapper — Free, open-source WiFi coverage and heatmap survey tool for macOS. NetSpot alternative.">
   <title>WifiMapper — WiFi Heatmap & Survey</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -22,18 +22,19 @@
     <div class="header-center">
       <div class="project-selector">
         <select id="project-select">
-          <option value="">— Proje Seç —</option>
+          <option value="" data-i18n="project.select">— Select Project —</option>
         </select>
-        <button id="btn-new-project" class="btn btn-sm btn-primary" title="Yeni Proje">＋</button>
-        <button id="btn-save-project" class="btn btn-sm btn-ghost" title="Kaydet">💾</button>
-        <button id="btn-delete-project" class="btn btn-sm btn-ghost btn-danger" title="Sil">🗑️</button>
+        <button id="btn-new-project" class="btn btn-sm btn-primary" title="New Project">＋</button>
+        <button id="btn-save-project" class="btn btn-sm btn-ghost" title="Save">💾</button>
+        <button id="btn-delete-project" class="btn btn-sm btn-ghost btn-danger" title="Delete">🗑️</button>
       </div>
     </div>
     <div class="header-right">
       <div class="wifi-status" id="wifi-status">
         <span class="status-dot offline"></span>
-        <span class="status-text">Bağlantı bekleniyor…</span>
+        <span class="status-text" data-i18n="wifi.waiting">Waiting for connection…</span>
       </div>
+      <button id="btn-lang-toggle" class="btn btn-sm btn-ghost" style="font-size: 12px; padding: 4px 8px; min-width: 52px;">🇹🇷 TR</button>
       <span id="device-badge" class="device-badge desktop"></span>
     </div>
   </header>
@@ -43,132 +44,145 @@
     <!-- Left Toolbar -->
     <aside id="toolbar" class="panel">
       <div class="toolbar-section">
-        <h3 class="toolbar-title">Araçlar</h3>
+        <h3 class="toolbar-title" data-i18n="tools.title">Tools</h3>
         <div class="tool-group">
-          <button class="tool-btn active" data-tool="select" title="Seç & Taşı">
+          <button class="tool-btn active" data-tool="select" title="Select & Move">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/></svg>
-            <span>Seç</span>
+            <span data-i18n="tool.select">Select</span>
           </button>
-          <button class="tool-btn" data-tool="measure" title="Ölçüm Yap">
+          <button class="tool-btn" data-tool="measure" title="Measure">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v4m0 12v4M2 12h4m12 0h4"/><circle cx="12" cy="12" r="9" stroke-dasharray="4 2"/></svg>
-            <span>Ölçüm</span>
+            <span data-i18n="tool.measure">Measure</span>
           </button>
-          <button class="tool-btn" data-tool="router" title="Modem / AP Ekle">
+          <button class="tool-btn" data-tool="router" title="Add Router / AP">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><circle cx="6" cy="6" r="1" fill="currentColor"/><circle cx="18" cy="6" r="1" fill="currentColor"/><circle cx="6" cy="18" r="1" fill="currentColor"/><circle cx="18" cy="18" r="1" fill="currentColor"/><path d="M12 2v4M12 14v4"/></svg>
-            <span>Modem/AP</span>
+            <span data-i18n="tool.router">Router/AP</span>
           </button>
-          <button class="tool-btn" data-tool="draw-rect" title="Dikdörtgen Oda Çiz">
+          <button class="tool-btn" data-tool="draw-rect" title="Draw Rectangle Room">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="1"/></svg>
-            <span>Dikdörtgen Çiz</span>
+            <span data-i18n="tool.drawRect">Draw Rect</span>
           </button>
-          <button class="tool-btn" data-tool="room-polygon" title="Köşeleri Belirle (Serbest Oda)">
+          <button class="tool-btn" data-tool="room-polygon" title="Set Corners (Free Room)">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12,2 22,9 17,22 7,22 2,9"/></svg>
-            <span>Köşeleri Belirle</span>
+            <span data-i18n="tool.polygon">Set Corners</span>
           </button>
-          <button class="tool-btn" data-tool="draw-line" title="Duvar Çiz">
+          <button class="tool-btn" data-tool="draw-line" title="Draw Wall">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="20" x2="20" y2="4"/></svg>
-            <span>Duvar</span>
+            <span data-i18n="tool.wall">Wall</span>
           </button>
-          <button class="tool-btn" data-tool="draw-text" title="Metin Ekle">
+          <button class="tool-btn" data-tool="draw-text" title="Add Text">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9.5" y1="4" x2="9.5" y2="20"/><line x1="14.5" y1="4" x2="14.5" y2="20"/><line x1="7" y1="20" x2="17" y2="20"/></svg>
-            <span>Metin</span>
+            <span data-i18n="tool.text">Text</span>
           </button>
-          <button class="tool-btn" data-tool="eraser" title="Silgi">
+          <button class="tool-btn" data-tool="eraser" title="Eraser">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 20H7L3 16l9-9 8 8-4 4z"/><line x1="7" y1="20" x2="20" y2="20"/></svg>
-            <span>Sil</span>
+            <span data-i18n="tool.eraser">Erase</span>
           </button>
         </div>
-        <button id="btn-clear-all-rooms" class="btn btn-sm" style="width: 100%; margin-top: 8px; font-size: 0.75rem; padding: 5px 8px; background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.2); color: #f87171; cursor: pointer; border-radius: 6px;">🗑️ Tüm Odaları Sil</button>
+        <button id="btn-clear-all-rooms" class="btn btn-sm" style="width: 100%; margin-top: 8px; font-size: 0.75rem; padding: 5px 8px; background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.2); color: #f87171; cursor: pointer; border-radius: 6px;" data-i18n="tools.clearRooms">🗑️ Clear All Rooms</button>
       </div>
 
       <div class="toolbar-section">
-        <h3 class="toolbar-title">Kat Planı</h3>
+        <h3 class="toolbar-title" data-i18n="floorplan.title">Floor Plan</h3>
         <div class="tool-group vertical">
-          <label for="floorplan-upload" class="btn btn-sm btn-secondary upload-btn">
-            📁 Resim Yükle
+          <label for="floorplan-upload" class="btn btn-sm btn-secondary upload-btn" data-i18n="floorplan.upload">
+            📁 Upload Image
           </label>
           <input type="file" id="floorplan-upload" accept="image/*" hidden>
-          <button id="btn-clear-floorplan" class="btn btn-sm btn-ghost">🧹 Temizle</button>
+          <button id="btn-clear-floorplan" class="btn btn-sm btn-ghost" data-i18n="floorplan.clear">🧹 Clear</button>
         </div>
       </div>
 
       <div class="toolbar-section">
-        <h3 class="toolbar-title">Ölçüm Modu</h3>
+        <h3 class="toolbar-title" data-i18n="mode.title">Measurement Mode</h3>
         <div class="tool-group vertical">
           <select id="measurement-mode" style="width: 100%; padding: 8px; border-radius: 6px; background: rgba(255,255,255,0.05); color: white; border: 1px solid rgba(255,255,255,0.1); font-size: 0.85rem; font-family: inherit;">
-            <option value="smart" selected>⚡ Çift Bant (Akıllı Hibrit)</option>
-            <option value="manual">🔄 Çift Bant (Adım Adım Tam)</option>
-            <option value="current">📶 Tek Bant (Sadece Bağlı)</option>
+            <option value="smart" selected data-i18n="mode.smart">⚡ Dual Band (Smart Hybrid)</option>
+            <option value="manual" data-i18n="mode.manual">🔄 Dual Band (Step by Step)</option>
+            <option value="current" data-i18n="mode.current">📶 Single Band (Connected Only)</option>
           </select>
-          <p id="mode-hint" style="font-size: 0.72rem; color: rgba(255,255,255,0.45); margin-top: 6px; line-height: 1.35; font-weight: 300;">Akıllı Hibrit: Bağlı bandı ölçer, diğer bandı tarayıp hızını sinyale göre otomatik tahmin eder.</p>
+          <p id="mode-hint" style="font-size: 0.72rem; color: rgba(255,255,255,0.45); margin-top: 6px; line-height: 1.35; font-weight: 300;" data-i18n="mode.hint.smart">Smart Hybrid: Measures connected band, scans the other band and estimates its speed based on signal.</p>
         </div>
       </div>
 
       <div class="toolbar-section">
-        <h3 class="toolbar-title">Çizim Ayarları</h3>
+        <h3 class="toolbar-title" data-i18n="sample.title">Sample Count</h3>
+        <div class="tool-group vertical">
+          <select id="sample-count" style="width: 100%; padding: 8px; border-radius: 6px; background: rgba(255,255,255,0.05); color: white; border: 1px solid rgba(255,255,255,0.1); font-size: 0.85rem; font-family: inherit;">
+            <option value="1" data-i18n="sample.1">🚀 Quick (1 sample)</option>
+            <option value="3" data-i18n="sample.3">⚡ Fast (3 samples)</option>
+            <option value="5" selected data-i18n="sample.5">📊 Standard (5 samples)</option>
+          </select>
+          <p id="sample-hint" style="font-size: 0.72rem; color: rgba(255,255,255,0.45); margin-top: 6px; line-height: 1.35; font-weight: 300; display: none;"></p>
+        </div>
+      </div>
+
+      <div class="toolbar-section">
+        <h3 class="toolbar-title" data-i18n="draw.title">Draw Settings</h3>
         <div class="draw-options">
-          <label>Renk
+          <label><span data-i18n="draw.color">Color</span>
             <input type="color" id="draw-color" value="#ffffff">
           </label>
-          <label>Kalınlık
+          <label><span data-i18n="draw.width">Width</span>
             <input type="range" id="draw-width" min="1" max="10" value="2">
           </label>
         </div>
       </div>
 
       <div class="toolbar-section">
-        <h3 class="toolbar-title">Heatmap</h3>
+        <h3 class="toolbar-title" data-i18n="heatmap.title">Heatmap</h3>
         <div class="heatmap-controls">
-          <label>Katman
+          <label><span data-i18n="heatmap.layer">Layer</span>
             <select id="heatmap-layer">
-              <option value="signal">Sinyal Gücü (dBm)</option>
-              <option value="download">Bağlantı Hızı (TX Rate)</option>
-              <option value="snr">SNR (dB)</option>
+              <option value="signal" data-i18n="heatmap.layer.signal">Signal Strength (dBm)</option>
+              <option value="download" data-i18n="heatmap.layer.download">Link Speed (TX Rate)</option>
+              <option value="snr" data-i18n="heatmap.layer.snr">SNR (dB)</option>
+              <option value="noise" data-i18n="heatmap.layer.noise">Noise Level (dBm)</option>
             </select>
           </label>
-          <label>Bant Filtresi
+          <label><span data-i18n="heatmap.band">Band Filter</span>
             <select id="heatmap-band">
-              <option value="all">Hibrit (Hangisi Hızlıysa)</option>
-              <option value="2.4GHz">Sadece 2.4 GHz</option>
-              <option value="5GHz">Sadece 5 GHz</option>
+              <option value="all" data-i18n="heatmap.band.all">Hybrid (Best Band)</option>
+              <option value="2.4GHz" data-i18n="heatmap.band.24">2.4 GHz Only</option>
+              <option value="5GHz" data-i18n="heatmap.band.5">5 GHz Only</option>
             </select>
           </label>
           <label class="checkbox-label">
             <input type="checkbox" id="heatmap-visible" checked>
-            Heatmap Göster
+            <span data-i18n="heatmap.show">Show Heatmap</span>
           </label>
-          <label>Opaklık
+          <label><span data-i18n="heatmap.opacity">Opacity</span>
             <input type="range" id="heatmap-opacity" min="10" max="90" value="55">
           </label>
           <label class="checkbox-label">
             <input type="checkbox" id="pins-visible">
-            Pin'leri Göster
+            <span data-i18n="heatmap.showPins">Show Pins</span>
           </label>
           <label class="checkbox-label">
             <input type="checkbox" id="routers-visible" checked>
-            Modemleri Göster
+            <span data-i18n="heatmap.showRouters">Show Routers</span>
           </label>
           <label class="checkbox-label">
             <input type="checkbox" id="rooms-visible" checked>
-            Odaları Göster
+            <span data-i18n="heatmap.showRooms">Show Rooms</span>
           </label>
         </div>
       </div>
 
       <div class="toolbar-section" style="border-top: 1px solid rgba(255,255,255,0.05); padding-top: 15px;">
-        <h3 class="toolbar-title" style="color: #a5b4fc; display: flex; align-items: center; gap: 4px;">🧠 Yapay Zeka (AI)</h3>
+        <h3 class="toolbar-title" style="color: #a5b4fc; display: flex; align-items: center; gap: 4px;" data-i18n="ai.title">🧠 AI Analysis</h3>
         <div class="tool-group vertical">
-          <button id="btn-ai-analysis" class="btn btn-sm btn-primary" style="background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); border: none; font-weight: 600; width: 100%;">Ağ Analizi Yap</button>
+          <button id="btn-ai-analysis" class="btn btn-sm btn-primary" style="background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); border: none; font-weight: 600; width: 100%;" data-i18n="ai.analyze">Analyze Network</button>
         </div>
       </div>
 
       <div class="toolbar-section">
-        <h3 class="toolbar-title">Dışa Aktar</h3>
+        <h3 class="toolbar-title" data-i18n="export.title">Export</h3>
         <div class="tool-group vertical">
-          <button id="btn-export-png" class="btn btn-sm btn-secondary">📷 PNG Kaydet</button>
-          <button id="btn-export-json" class="btn btn-sm btn-secondary">📄 JSON İndir</button>
-          <button id="btn-export-csv" class="btn btn-sm btn-secondary">📊 CSV İndir</button>
-          <button id="btn-export-report" class="btn btn-sm btn-secondary">📋 Rapor Oluştur</button>
+          <button id="btn-export-png" class="btn btn-sm btn-secondary" data-i18n="export.png">📷 Save PNG</button>
+          <button id="btn-export-json" class="btn btn-sm btn-secondary" data-i18n="export.json">📄 Download JSON</button>
+          <button id="btn-export-csv" class="btn btn-sm btn-secondary" data-i18n="export.csv">📊 Download CSV</button>
+          <button id="btn-export-report" class="btn btn-sm btn-secondary" data-i18n="export.report">📋 Generate Report</button>
         </div>
       </div>
     </aside>
@@ -179,18 +193,18 @@
       <div id="welcome-overlay" class="overlay">
         <div class="welcome-content">
           <div class="welcome-icon">📡</div>
-          <h2>WifiMapper'a Hoş Geldiniz</h2>
-          <p>WiFi kapsama alanınızı haritalamaya başlamak için bir kat planı yükleyin veya doğrudan çizim yapın.</p>
+          <h2 data-i18n="welcome.title">Welcome to WifiMapper</h2>
+          <p data-i18n="welcome.desc">Upload a floor plan or start drawing directly to map your WiFi coverage.</p>
           <div class="welcome-actions">
-            <label for="floorplan-upload-hero" class="btn btn-lg btn-primary">
-              📁 Kat Planı Yükle
+            <label for="floorplan-upload-hero" class="btn btn-lg btn-primary" data-i18n="welcome.upload">
+              📁 Upload Floor Plan
             </label>
             <input type="file" id="floorplan-upload-hero" accept="image/*" hidden>
-            <button id="btn-start-drawing" class="btn btn-lg btn-secondary">
-              ✏️ Boş Canvas ile Başla
+            <button id="btn-start-drawing" class="btn btn-lg btn-secondary" data-i18n="welcome.draw">
+              ✏️ Start with Blank Canvas
             </button>
           </div>
-          <p class="welcome-hint">PNG, JPG veya SVG formatlarını destekler</p>
+          <p class="welcome-hint" data-i18n="welcome.hint">Supports PNG, JPG, and SVG formats</p>
         </div>
       </div>
 
@@ -203,28 +217,28 @@
 
       <!-- Zoom Controls -->
       <div class="zoom-controls">
-        <button id="btn-zoom-in" class="btn btn-icon" title="Yakınlaştır">＋</button>
+        <button id="btn-zoom-in" class="btn btn-icon" title="Zoom In">＋</button>
         <span id="zoom-level">100%</span>
-        <button id="btn-zoom-out" class="btn btn-icon" title="Uzaklaştır">−</button>
-        <button id="btn-zoom-fit" class="btn btn-icon" title="Sığdır">⊞</button>
+        <button id="btn-zoom-out" class="btn btn-icon" title="Zoom Out">−</button>
+        <button id="btn-zoom-fit" class="btn btn-icon" title="Fit">⊞</button>
       </div>
 
       <!-- Room Drawing Actions -->
       <div id="room-polygon-actions" style="display:none; position: absolute; top: 15px; left: 50%; transform: translateX(-50%); z-index: 10; background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(99,102,241,0.3); padding: 8px 16px; border-radius: 8px; gap: 10px; align-items: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.5);">
-        <span style="color: #a5b4fc; font-size: 0.85rem; font-weight: 500;">Köşeleri tıklayarak oda çizin:</span>
-        <button id="btn-polygon-toggle-pins" class="btn btn-xs btn-secondary" style="font-size: 0.75rem; padding: 4px 10px;">Ölçümleri Gizle</button>
-        <button id="btn-polygon-complete" class="btn btn-xs btn-primary" style="font-size: 0.75rem; padding: 4px 10px; font-weight: 600;">Tamamla</button>
-        <button id="btn-polygon-cancel" class="btn btn-xs btn-ghost" style="font-size: 0.75rem; padding: 4px 10px; color: #f87171;">İptal</button>
+        <span style="color: #a5b4fc; font-size: 0.85rem; font-weight: 500;" data-i18n="polygon.hint">Click corners to draw a room:</span>
+        <button id="btn-polygon-toggle-pins" class="btn btn-xs btn-secondary" style="font-size: 0.75rem; padding: 4px 10px;" data-i18n="polygon.togglePins">Hide Measurements</button>
+        <button id="btn-polygon-complete" class="btn btn-xs btn-primary" style="font-size: 0.75rem; padding: 4px 10px; font-weight: 600;" data-i18n="polygon.complete">Complete</button>
+        <button id="btn-polygon-cancel" class="btn btn-xs btn-ghost" style="font-size: 0.75rem; padding: 4px 10px; color: #f87171;" data-i18n="polygon.cancel">Cancel</button>
       </div>
 
       <!-- Large Measurement Result Overlay -->
       <div id="measurement-result-overlay" style="display:none; opacity: 0; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 20; background: rgba(15, 23, 42, 0.95); border: 2px solid rgba(99, 102, 241, 0.5); border-radius: 16px; padding: 24px 40px; text-align: center; pointer-events: none; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7); min-width: 280px; transition: opacity 0.5s ease;">
-        <div style="font-size: 0.8rem; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px; font-weight: 600;">Ölçüm Sonucu</div>
+        <div style="font-size: 0.8rem; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px; font-weight: 600;" data-i18n="measure.result">Measurement Result</div>
         <div id="result-overlay-value" style="font-size: 3.5rem; font-weight: 800; color: #ffffff; line-height: 1.1; margin-bottom: 15px; font-family: 'Inter', sans-serif;">-45 dBm</div>
         <div style="position: relative; width: 100%; height: 8px; background: linear-gradient(to right, #ef4444 0%, #f97316 25%, #fbbf24 50%, #10b981 75%, #06b6d4 100%); border-radius: 4px; margin-bottom: 12px;">
           <div id="result-overlay-tick" style="position: absolute; top: -4px; left: 50%; transform: translateX(-50%); width: 4px; height: 16px; background: #ffffff; border-radius: 2px; box-shadow: 0 0 4px rgba(0,0,0,0.5); transition: left 0.3s ease;"></div>
         </div>
-        <div id="result-overlay-desc" style="font-size: 0.85rem; color: #a5b4fc; font-weight: 500;">Mükemmel Sinyal</div>
+        <div id="result-overlay-desc" style="font-size: 0.85rem; color: #a5b4fc; font-weight: 500;">Excellent Signal</div>
       </div>
 
       <!-- Measurement Tooltip -->
@@ -235,11 +249,11 @@
             <span class="tooltip-band"></span>
           </div>
           <div class="tooltip-body">
-            <div class="tooltip-row"><span>Sinyal</span><span class="tooltip-signal"></span></div>
-            <div class="tooltip-row"><span>SNR</span><span class="tooltip-snr"></span></div>
-            <div class="tooltip-row"><span>Download</span><span class="tooltip-download"></span></div>
-            <div class="tooltip-row"><span>Upload</span><span class="tooltip-upload"></span></div>
-            <div class="tooltip-row"><span>Gecikme</span><span class="tooltip-latency"></span></div>
+            <div class="tooltip-row"><span data-i18n="tooltip.signal">Signal</span><span class="tooltip-signal"></span></div>
+            <div class="tooltip-row"><span data-i18n="tooltip.snr">SNR</span><span class="tooltip-snr"></span></div>
+            <div class="tooltip-row"><span data-i18n="tooltip.download">Download</span><span class="tooltip-download"></span></div>
+            <div class="tooltip-row"><span data-i18n="tooltip.upload">Upload</span><span class="tooltip-upload"></span></div>
+            <div class="tooltip-row"><span data-i18n="tooltip.latency">Latency</span><span class="tooltip-latency"></span></div>
           </div>
         </div>
       </div>
@@ -248,50 +262,50 @@
     <!-- Right Panel -->
     <aside id="details-panel" class="panel">
       <div class="panel-section">
-        <h3 class="panel-title">📡 Mevcut Bağlantı</h3>
+        <h3 class="panel-title">📡 <span data-i18n="details.title">Current Connection</span></h3>
         <div id="current-wifi" class="info-card">
           <div class="info-row"><span>SSID</span><span id="info-ssid">—</span></div>
-          <div class="info-row"><span>Sinyal</span><span id="info-signal">—</span></div>
-          <div class="info-row"><span>Gürültü</span><span id="info-noise">—</span></div>
+          <div class="info-row"><span data-i18n="tooltip.signal">Signal</span><span id="info-signal">—</span></div>
+          <div class="info-row"><span>Noise</span><span id="info-noise">—</span></div>
           <div class="info-row"><span>SNR</span><span id="info-snr">—</span></div>
-          <div class="info-row"><span>Kanal</span><span id="info-channel">—</span></div>
-          <div class="info-row"><span>Bant</span><span id="info-band">—</span></div>
+          <div class="info-row"><span>Channel</span><span id="info-channel">—</span></div>
+          <div class="info-row"><span>Band</span><span id="info-band">—</span></div>
           <div class="info-row"><span>PHY Mode</span><span id="info-phymode">—</span></div>
           <div class="info-row"><span>TX Rate</span><span id="info-txrate">—</span></div>
         </div>
       </div>
 
       <div class="panel-section">
-        <h3 class="panel-title">📍 Seçili Ölçüm</h3>
+        <h3 class="panel-title">📍 <span data-i18n="details.measurements">Selected Measurement</span></h3>
         <div id="selected-measurement" class="info-card empty-state">
-          <p>Bir ölçüm noktasına tıklayın veya yeni ölçüm ekleyin</p>
+          <p data-i18n="details.empty">Select a measurement point on the map to see details.</p>
         </div>
         <div id="measurement-detail" class="info-card" style="display:none;">
           <div class="measurement-header" style="display: flex; gap: 6px; align-items: center;">
-            <input type="text" id="measurement-label" class="input-ghost" placeholder="Etiket ekle…">
-            <button id="btn-remeasure" class="btn btn-sm btn-primary" title="Yeniden Ölç" style="padding: 4px 8px; font-size: 0.75rem; font-weight: 600; display: none;">🔄 Yeniden Ölç</button>
-            <button id="btn-delete-measurement" class="btn btn-sm btn-danger" title="Sil">🗑️</button>
+            <input type="text" id="measurement-label" class="input-ghost" placeholder="Add label…">
+            <button id="btn-remeasure" class="btn btn-sm btn-primary" title="Re-measure" style="padding: 4px 8px; font-size: 0.75rem; font-weight: 600; display: none;">🔄</button>
+            <button id="btn-delete-measurement" class="btn btn-sm btn-danger" title="Delete">🗑️</button>
           </div>
           <div id="measurement-detail-body"></div>
         </div>
       </div>
 
       <div class="panel-section">
-        <h3 class="panel-title">📊 Özet İstatistikler</h3>
+        <h3 class="panel-title">📊 <span>Summary Statistics</span></h3>
         <div id="stats-summary" class="info-card">
-          <div class="info-row"><span>Toplam Ölçüm</span><span id="stat-total">0</span></div>
+          <div class="info-row"><span>Total Measurements</span><span id="stat-total">0</span></div>
           <div class="info-row"><span>2.4 GHz</span><span id="stat-24ghz">0</span></div>
           <div class="info-row"><span>5 GHz</span><span id="stat-5ghz">0</span></div>
-          <div class="info-row separator"><span>En İyi Sinyal</span><span id="stat-best-signal">—</span></div>
-          <div class="info-row"><span>En Kötü Sinyal</span><span id="stat-worst-signal">—</span></div>
-          <div class="info-row"><span>Ort. Download</span><span id="stat-avg-download">—</span></div>
+          <div class="info-row separator"><span>Best Signal</span><span id="stat-best-signal">—</span></div>
+          <div class="info-row"><span>Worst Signal</span><span id="stat-worst-signal">—</span></div>
+          <div class="info-row"><span>Avg. TX Rate</span><span id="stat-avg-download">—</span></div>
         </div>
       </div>
 
       <div class="panel-section">
-        <h3 class="panel-title">📋 Tüm Ölçümler</h3>
+        <h3 class="panel-title">📋 <span>All Measurements</span></h3>
         <div id="measurements-list" class="measurements-list">
-          <p class="empty-state">Henüz ölçüm yok</p>
+          <p class="empty-state" data-i18n="details.noMeasurements">No measurements yet. Select the Measure tool and click on the map.</p>
         </div>
       </div>
     </aside>
@@ -300,7 +314,7 @@
   <!-- ─── Status Bar ────────────────────────────────── -->
   <footer id="status-bar">
     <div class="status-left">
-      <span id="status-tool">Araç: Seç</span>
+      <span id="status-tool">Tool: Select</span>
       <span class="separator">|</span>
       <span id="status-coords">X: 0, Y: 0</span>
     </div>
@@ -310,21 +324,21 @@
     <div class="status-right">
       <span id="status-zoom">Zoom: 100%</span>
       <span class="separator">|</span>
-      <span id="status-measurements">Ölçüm: 0</span>
+      <span id="status-measurements">Measurements: 0</span>
     </div>
   </footer>
 
   <!-- ─── Modal: New Project ────────────────────────── -->
   <div id="modal-overlay" class="modal-overlay" style="display:none;">
     <div class="modal" id="modal-new-project">
-      <h3>Yeni Proje Oluştur</h3>
+      <h3 data-i18n="modal.newProject">📁 New Project</h3>
       <div class="form-group">
-        <label for="new-project-name">Proje Adı</label>
-        <input type="text" id="new-project-name" placeholder="Örn: Ev WiFi Haritası">
+        <label for="new-project-name" data-i18n="modal.projectName">Project Name</label>
+        <input type="text" id="new-project-name" data-i18n-placeholder="modal.projectPlaceholder" placeholder="e.g., Home WiFi Survey">
       </div>
       <div class="modal-actions">
-        <button id="btn-modal-cancel" class="btn btn-sm btn-ghost">İptal</button>
-        <button id="btn-modal-create" class="btn btn-sm btn-primary">Oluştur</button>
+        <button id="btn-modal-cancel" class="btn btn-sm btn-ghost" data-i18n="modal.cancel">Cancel</button>
+        <button id="btn-modal-create" class="btn btn-sm btn-primary" data-i18n="modal.create">Create</button>
       </div>
     </div>
   </div>
@@ -340,13 +354,13 @@
           <div class="ring-center">📡</div>
         </div>
       </div>
-      <h3 id="measuring-title">Ölçüm Yapılıyor…</h3>
-      <div class="measuring-steps">
-        <div class="step" id="step-sample-1"><span class="step-icon">⏳</span> 1. Saniye Analizi</div>
-        <div class="step" id="step-sample-2"><span class="step-icon">⏳</span> 2. Saniye Analizi</div>
-        <div class="step" id="step-sample-3"><span class="step-icon">⏳</span> 3. Saniye Analizi</div>
-        <div class="step" id="step-sample-4"><span class="step-icon">⏳</span> 4. Saniye Analizi</div>
-        <div class="step" id="step-sample-5"><span class="step-icon">⏳</span> 5. Saniye Analizi</div>
+      <h3 id="measuring-title" data-i18n="modal.measuring.title">📡 Measuring...</h3>
+      <div class="measuring-steps" id="measuring-steps-container">
+        <div class="step" id="step-sample-1"><span class="step-icon">⏳</span> Sample 1</div>
+        <div class="step" id="step-sample-2"><span class="step-icon">⏳</span> Sample 2</div>
+        <div class="step" id="step-sample-3"><span class="step-icon">⏳</span> Sample 3</div>
+        <div class="step" id="step-sample-4"><span class="step-icon">⏳</span> Sample 4</div>
+        <div class="step" id="step-sample-5"><span class="step-icon">⏳</span> Sample 5</div>
       </div>
       <div class="measuring-progress">
         <div class="progress-bar">
@@ -354,31 +368,31 @@
         </div>
       </div>
       
-      <!-- Çift bant adım adım ölçüm kılavuzu -->
+      <!-- Dual band step guide -->
       <div id="measuring-guide-container" style="display:none; margin-top: 15px; text-align: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">
         <p id="measuring-guide-text" style="color: #a5b4fc; font-weight: 600; margin-bottom: 6px; font-size: 0.9rem;"></p>
-        <p style="font-size: 0.75rem; color: rgba(255,255,255,0.6); margin-bottom: 12px; line-height: 1.4;">Lütfen diğer WiFi bandına geçin ve aşağıdaki butona tıklayın.</p>
+        <p style="font-size: 0.75rem; color: rgba(255,255,255,0.6); margin-bottom: 12px; line-height: 1.4;">Please switch to the other WiFi band and click the button below.</p>
         <div style="display: flex; gap: 8px; justify-content: center;">
-          <button id="btn-manual-skip" class="btn btn-xs btn-secondary" style="font-size: 0.75rem; padding: 6px 12px;">Bu Bandı Atla</button>
-          <button id="btn-manual-continue" class="btn btn-xs btn-primary" style="font-size: 0.75rem; padding: 6px 12px; font-weight: 600;">Geçiş Yaptım, Devam Et</button>
+          <button id="btn-manual-skip" class="btn btn-xs btn-secondary" style="font-size: 0.75rem; padding: 6px 12px;">Skip This Band</button>
+          <button id="btn-manual-continue" class="btn btn-xs btn-primary" style="font-size: 0.75rem; padding: 6px 12px; font-weight: 600;">Switched, Continue</button>
         </div>
       </div>
 
-      <button id="btn-cancel-measuring" class="btn btn-sm btn-ghost" style="margin-top: 10px;">İptal</button>
+      <button id="btn-cancel-measuring" class="btn btn-sm btn-ghost" style="margin-top: 10px;" data-i18n="modal.cancel">Cancel</button>
     </div>
   </div>
 
   <!-- ─── Modal: Text Input ─────────────────────────── -->
   <div id="modal-text-input" class="modal-overlay" style="display:none;">
     <div class="modal">
-      <h3>Metin Ekle</h3>
+      <h3>Add Text</h3>
       <div class="form-group">
-        <label for="canvas-text-input">Metin</label>
-        <input type="text" id="canvas-text-input" placeholder="Oda adı, not vb.">
+        <label for="canvas-text-input">Text</label>
+        <input type="text" id="canvas-text-input" placeholder="Room name, note, etc.">
       </div>
       <div class="modal-actions">
-        <button id="btn-text-cancel" class="btn btn-sm btn-ghost">İptal</button>
-        <button id="btn-text-add" class="btn btn-sm btn-primary">Ekle</button>
+        <button id="btn-text-cancel" class="btn btn-sm btn-ghost" data-i18n="modal.cancel">Cancel</button>
+        <button id="btn-text-add" class="btn btn-sm btn-primary">Add</button>
       </div>
     </div>
   </div>
@@ -386,44 +400,44 @@
   <!-- ─── Modal: Add Router/AP ─────────────────────── -->
   <div id="modal-router-overlay" class="modal-overlay" style="display:none;">
     <div class="modal" id="modal-router">
-      <h3>Modem / Access Point (AP) Ekle</h3>
+      <h3 data-i18n="modal.router.title">📡 Add Router / AP</h3>
       <div class="form-group">
-        <label for="router-name">Cihaz Adı</label>
-        <input type="text" id="router-name" placeholder="Örn: Ana Modem, Salon AP">
+        <label for="router-name" data-i18n="modal.router.name">Router Name</label>
+        <input type="text" id="router-name" data-i18n-placeholder="modal.router.namePlaceholder" placeholder="e.g., Living Room Router">
       </div>
       <div class="form-group">
-        <label for="router-band">Çalışma Bandı</label>
+        <label for="router-band" data-i18n="modal.router.band">Band</label>
         <select id="router-band">
           <option value="5GHz" selected>5 GHz</option>
           <option value="2.4GHz">2.4 GHz</option>
-          <option value="5GHz+2.4GHz">5 GHz + 2.4 GHz (Çift Bant)</option>
+          <option value="5GHz+2.4GHz">5 GHz + 2.4 GHz (Dual Band)</option>
           <option value="6GHz">6 GHz</option>
         </select>
       </div>
       <div class="form-group" id="router-single-channel-group">
-        <label for="router-channel">Kanal Numarası</label>
-        <input type="number" id="router-channel" placeholder="Örn: 36, 6, 11" min="1" max="200" value="36">
+        <label for="router-channel" data-i18n="modal.router.channel">Channel Number</label>
+        <input type="number" id="router-channel" placeholder="e.g., 36, 6, 11" min="1" max="200" value="36">
       </div>
       <div class="form-group" style="margin-bottom: 12px;">
         <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.85rem;">
           <input type="checkbox" id="router-mesh" style="width: 16px; height: 16px; accent-color: #8b5cf6; cursor: pointer;">
-          <span>🔗 Mesh Sistem Cihazı</span>
+          <span data-i18n="modal.router.mesh">🔗 Mesh System Device</span>
         </label>
-        <p style="font-size: 0.7rem; color: rgba(255,255,255,0.35); margin: 4px 0 0 24px; line-height: 1.4;">Bu cihaz bir Mesh ağın parçasıysa (Örn: TP-Link Deco, Google Nest) işaretleyin. Aynı kanal/SSID uyarıları devre dışı kalır.</p>
+        <p style="font-size: 0.7rem; color: rgba(255,255,255,0.35); margin: 4px 0 0 24px; line-height: 1.4;">If this device is part of a Mesh network (e.g., TP-Link Deco, Google Nest), check this box. Same channel/SSID warnings will be disabled.</p>
       </div>
       <div class="form-group" id="router-dual-channels-group" style="display:none; gap: 10px; flex-direction: row; margin-bottom: 15px;">
         <div style="flex: 1; text-align: left;">
-          <label for="router-channel-5">5 GHz Kanalı</label>
-          <input type="number" id="router-channel-5" placeholder="Örn: 36" min="36" max="165" value="36" style="width: 100%; padding: 8px; border-radius: 6px; background: rgba(255,255,255,0.05); color: white; border: 1px solid rgba(255,255,255,0.1);">
+          <label for="router-channel-5">5 GHz Channel</label>
+          <input type="number" id="router-channel-5" placeholder="e.g., 36" min="36" max="165" value="36" style="width: 100%; padding: 8px; border-radius: 6px; background: rgba(255,255,255,0.05); color: white; border: 1px solid rgba(255,255,255,0.1);">
         </div>
         <div style="flex: 1; text-align: left;">
-          <label for="router-channel-24">2.4 GHz Kanalı</label>
-          <input type="number" id="router-channel-24" placeholder="Örn: 6" min="1" max="13" value="6" style="width: 100%; padding: 8px; border-radius: 6px; background: rgba(255,255,255,0.05); color: white; border: 1px solid rgba(255,255,255,0.1);">
+          <label for="router-channel-24">2.4 GHz Channel</label>
+          <input type="number" id="router-channel-24" placeholder="e.g., 6" min="1" max="13" value="6" style="width: 100%; padding: 8px; border-radius: 6px; background: rgba(255,255,255,0.05); color: white; border: 1px solid rgba(255,255,255,0.1);">
         </div>
       </div>
       <div class="modal-actions">
-        <button id="btn-router-cancel" class="btn btn-sm btn-ghost">İptal</button>
-        <button id="btn-router-add" class="btn btn-sm btn-primary">Ekle</button>
+        <button id="btn-router-cancel" class="btn btn-sm btn-ghost" data-i18n="modal.cancel">Cancel</button>
+        <button id="btn-router-add" class="btn btn-sm btn-primary" data-i18n="modal.router.add">Add</button>
       </div>
     </div>
   </div>
@@ -433,7 +447,7 @@
     <div class="modal modal-lg" id="modal-ai-analysis" style="max-width: 700px; width: 90%; background: #0f172a; border: 1px solid rgba(99,102,241,0.2); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.5), 0 10px 10px -5px rgba(0,0,0,0.4);">
       <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 12px; margin-bottom: 15px;">
         <h3 style="margin: 0; display: flex; align-items: center; gap: 8px; font-weight: 700; color: #a5b4fc; font-size: 1.25rem;">
-          <span>🧠</span> Yapay Zeka Ağ Analiz Raporu
+          <span>🧠</span> <span data-i18n="ai.report.title">AI WiFi Analysis Report</span>
         </h3>
         <button id="btn-close-ai" class="btn btn-sm btn-ghost" style="font-size: 1.5rem; line-height: 1; padding: 0; border: none; background: transparent; color: rgba(255,255,255,0.5); cursor: pointer;">&times;</button>
       </div>
@@ -441,8 +455,9 @@
         <!-- Dynamic report content -->
       </div>
       <div class="modal-actions" style="margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px; display: flex; justify-content: flex-end; gap: 10px;">
-        <button id="btn-print-ai" class="btn btn-sm btn-secondary">🖨️ Raporu Yazdır</button>
-        <button id="btn-ok-ai" class="btn btn-sm btn-primary">Tamam</button>
+        <button id="btn-print-ai" class="btn btn-sm btn-secondary" data-i18n="ai.report.print">🖨️ Print Report</button>
+        <button id="btn-pdf-ai" class="btn btn-sm btn-secondary" data-i18n="ai.report.pdf">📄 Download PDF</button>
+        <button id="btn-ok-ai" class="btn btn-sm btn-primary" data-i18n="ai.report.ok">OK</button>
       </div>
     </div>
   </div>
@@ -452,16 +467,17 @@
 
   <!-- Mobile Floating Toolbar -->
   <div id="mobile-fab" class="mobile-fab-toolbar">
-    <button id="fab-tools" title="Araçlar">🛠️</button>
-    <button id="fab-measure" title="Ölçüm">📡</button>
+    <button id="fab-tools" title="Tools">🛠️</button>
+    <button id="fab-measure" title="Measure">📡</button>
     <div class="fab-divider"></div>
-    <button id="fab-zoom-in" title="Yakınlaştır">＋</button>
-    <button id="fab-zoom-out" title="Uzaklaştır">−</button>
+    <button id="fab-zoom-in" title="Zoom In">＋</button>
+    <button id="fab-zoom-out" title="Zoom Out">−</button>
     <div class="fab-divider"></div>
-    <button id="fab-details" title="Detaylar">📋</button>
+    <button id="fab-details" title="Details">📋</button>
   </div>
 
   <!-- Scripts -->
+  <script src="js/i18n.js"></script>
   <script src="js/floorplan.js"></script>
   <script src="js/heatmap.js"></script>
   <script src="js/speedtest.js"></script>

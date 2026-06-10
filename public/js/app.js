@@ -38,6 +38,8 @@ const App = (() => {
     bindRouterControls();
     bindAiControls();
     bindRoomPolygonControls();
+    bindLanguageToggle();
+    bindSampleCount();
 
     // Start WiFi status polling
     pollWifiStatus();
@@ -49,6 +51,9 @@ const App = (() => {
     // Mobile & device setup
     setupDeviceBadge();
     bindMobileControls();
+
+    // Apply i18n translations
+    I18n.applyTranslations();
 
     console.log('WifiMapper booted ✓');
   }
@@ -377,12 +382,14 @@ const App = (() => {
       const samples = [];
       let scannedAllData = null;
       let scanAllPromise = null;
+      const totalSamples = getSampleCount();
+      updateMeasuringSteps(totalSamples);
 
-      for (let i = 1; i <= 5; i++) {
+      for (let i = 1; i <= totalSamples; i++) {
         if (measureCancelled) return null;
 
         updateMeasureStep('step-sample-' + i, 'active');
-        updateMeasureProgress(i * 20);
+        updateMeasureProgress(Math.round((i / totalSamples) * 100));
 
         try {
           const res = await fetch(`${API_BASE}/api/wifi/scan`);
@@ -397,7 +404,8 @@ const App = (() => {
           updateMeasureStep('step-sample-' + i, 'error');
         }
 
-        if (i === 3 && mode === 'smart') {
+        const scanAllAt = Math.min(3, totalSamples);
+        if (i === scanAllAt && mode === 'smart') {
           scanAllPromise = fetch(`${API_BASE}/api/wifi/scan-all`)
             .then(res => res.ok ? res.json() : null)
             .catch(e => {
@@ -406,7 +414,7 @@ const App = (() => {
             });
         }
 
-        if (i < 5 && !measureCancelled) {
+        if (i < totalSamples && !measureCancelled) {
           await new Promise(resolve => setTimeout(resolve, 1000));
         }
       }
@@ -1280,7 +1288,7 @@ const App = (() => {
             </style>
           </head>
           <body>
-            <h3>🧠 Yapay Zeka Ağ Analiz Raporu</h3>
+            <h3>🧠 ${I18n.t('ai.report.title')}</h3>
             ${content}
             <script>window.print();</script>
           </body>
@@ -1288,6 +1296,9 @@ const App = (() => {
       `);
       win.document.close();
     });
+
+    // PDF Export
+    document.getElementById('btn-pdf-ai')?.addEventListener('click', exportAiReportPdf);
   }
 
   // ─── AI Network Analysis Algorithm ────────────────────
@@ -1647,6 +1658,116 @@ const App = (() => {
         }
       }, 500);
     }, 2000);
+  }
+
+  // ─── Language Toggle ──────────────────────────────────
+  function bindLanguageToggle() {
+    const btn = document.getElementById('btn-lang-toggle');
+    if (!btn) return;
+
+    btn.addEventListener('click', () => {
+      const newLang = I18n.getLanguage() === 'en' ? 'tr' : 'en';
+      I18n.setLanguage(newLang);
+      // Refresh dynamic content
+      refreshAllDynamicContent();
+    });
+  }
+
+  function refreshAllDynamicContent() {
+    // Re-render measurements list and stats
+    if (typeof Survey !== 'undefined') {
+      Survey.renderAll();
+    }
+    // Re-render heatmap legend
+    if (typeof HeatmapEngine !== 'undefined') {
+      HeatmapEngine.render();
+    }
+  }
+
+  // ─── Sample Count ─────────────────────────────────────
+  function bindSampleCount() {
+    const select = document.getElementById('sample-count');
+    const hint = document.getElementById('sample-hint');
+    if (!select) return;
+
+    select.addEventListener('change', () => {
+      const count = parseInt(select.value);
+      if (count === 1) {
+        hint.style.display = 'block';
+        hint.textContent = I18n.t('sample.quickWarning');
+        hint.style.color = '#f59e0b';
+      } else if (count === 3) {
+        hint.style.display = 'block';
+        hint.textContent = I18n.getLanguage() === 'en'
+          ? '3 samples provide a good balance between speed and accuracy.'
+          : '3 örneklem hız ve doğruluk arasında iyi bir denge sağlar.';
+        hint.style.color = 'rgba(255,255,255,0.45)';
+      } else {
+        hint.style.display = 'none';
+      }
+
+      // Update measuring steps UI
+      updateMeasuringSteps(count);
+    });
+  }
+
+  function getSampleCount() {
+    const select = document.getElementById('sample-count');
+    return select ? parseInt(select.value) : 5;
+  }
+
+  function updateMeasuringSteps(count) {
+    const container = document.getElementById('measuring-steps-container');
+    if (!container) return;
+    container.innerHTML = '';
+    const label = I18n.getLanguage() === 'en' ? 'Sample' : 'Örneklem';
+    for (let i = 1; i <= count; i++) {
+      const div = document.createElement('div');
+      div.className = 'step';
+      div.id = `step-sample-${i}`;
+      div.innerHTML = `<span class="step-icon">⏳</span> ${label} ${i}`;
+      container.appendChild(div);
+    }
+  }
+
+  // ─── PDF Export ────────────────────────────────────────
+  function exportAiReportPdf() {
+    const content = document.getElementById('ai-analysis-content');
+    if (!content || !content.innerHTML.trim()) return;
+
+    const title = I18n.t('ai.report.title');
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html><head>
+        <meta charset="UTF-8">
+        <title>${title}</title>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+        <style>
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body { 
+            font-family: 'Inter', sans-serif; font-size: 13px; line-height: 1.7; 
+            color: #1e293b; padding: 30px; max-width: 800px; margin: 0 auto;
+          }
+          h1 { font-size: 20px; color: #4338ca; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid #e2e8f0; }
+          h2 { font-size: 16px; color: #334155; margin: 16px 0 8px; }
+          h3 { font-size: 14px; color: #475569; margin: 12px 0 6px; }
+          table { width: 100%; border-collapse: collapse; margin: 8px 0 16px; }
+          th, td { padding: 6px 10px; border: 1px solid #e2e8f0; text-align: left; font-size: 12px; }
+          th { background: #f8fafc; font-weight: 600; }
+          .score-card, div[style*="border-radius"] { border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; margin: 8px 0; }
+          strong { font-weight: 600; }
+          .footer { margin-top: 30px; padding-top: 10px; border-top: 1px solid #e2e8f0; font-size: 11px; color: #94a3b8; text-align: center; }
+          @media print { body { padding: 15px; } }
+        </style>
+      </head><body>
+        <h1>🧠 ${title}</h1>
+        ${content.innerHTML}
+        <div class="footer">Generated by WifiMapper — ${new Date().toLocaleString()}</div>
+        <script>setTimeout(() => { window.print(); }, 500);</script>
+      </body></html>
+    `);
+    printWindow.document.close();
   }
 
   // ─── Device Detection & Badge ─────────────────────────
