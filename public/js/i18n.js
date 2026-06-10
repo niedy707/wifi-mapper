@@ -1,21 +1,31 @@
 /**
  * i18n Module — Internationalization
- * Default: English, Supported: Turkish
+ * Supported: EN, TR, ES, DE, RU, ZH
  */
 const I18n = (() => {
+  const SUPPORTED_LANGS = {
+    en: { flag: '🇬🇧', name: 'English' },
+    tr: { flag: '🇹🇷', name: 'Türkçe' },
+    es: { flag: '🇪🇸', name: 'Español' },
+    de: { flag: '🇩🇪', name: 'Deutsch' },
+    ru: { flag: '🇷🇺', name: 'Русский' },
+    zh: { flag: '🇨🇳', name: '中文' }
+  };
+
   let currentLang = localStorage.getItem('wifimapper-lang') || 'en';
+  if (!SUPPORTED_LANGS[currentLang]) currentLang = 'en';
 
   const translations = {
+    // ═══════════════════════════════════════════════════════
+    // ENGLISH (Default)
+    // ═══════════════════════════════════════════════════════
     en: {
-      // Header
       'app.title': 'WifiMapper',
       'project.select': '— Select Project —',
       'project.new': 'New Project',
       'project.save': 'Save',
       'project.delete': 'Delete',
       'wifi.waiting': 'Waiting for connection…',
-
-      // Tools
       'tools.title': 'Tools',
       'tool.select': 'Select',
       'tool.measure': 'Measure',
@@ -26,13 +36,9 @@ const I18n = (() => {
       'tool.text': 'Text',
       'tool.eraser': 'Erase',
       'tools.clearRooms': '🗑️ Clear All Rooms',
-
-      // Floor Plan
       'floorplan.title': 'Floor Plan',
       'floorplan.upload': '📁 Upload Image',
       'floorplan.clear': '🧹 Clear',
-
-      // Measurement Mode
       'mode.title': 'Measurement Mode',
       'mode.smart': '⚡ Dual Band (Smart Hybrid)',
       'mode.manual': '🔄 Dual Band (Step by Step)',
@@ -42,20 +48,15 @@ const I18n = (() => {
       'mode.hint.manual': 'Step by Step: Tests the connected band first, then asks you to switch and tests the other band.',
       'mode.hint.current': 'Single Band: Measures only the currently connected band.',
       'mode.hint.quick': '⚠️ Quick mode takes a single sample. Based on our analysis, 64% of measurements show ≥3 dBm variance and 27% show ≥5 dBm in 5 samples. Results may be less accurate.',
-
-      // Sample count
       'sample.title': 'Sample Count',
       'sample.1': '🚀 Quick (1 sample)',
       'sample.3': '⚡ Fast (3 samples)',
       'sample.5': '📊 Standard (5 samples)',
       'sample.quickWarning': '⚠️ Quick mode: Single sample may be inaccurate. In our tests, 64% of measurements showed ≥3 dBm variance across 5 samples.',
-
-      // Draw Options
+      'sample.fastHint': '3 samples provide a good balance between speed and accuracy.',
       'draw.title': 'Draw Settings',
       'draw.color': 'Color',
       'draw.width': 'Width',
-
-      // Heatmap
       'heatmap.title': 'Heatmap',
       'heatmap.layer': 'Layer',
       'heatmap.layer.signal': 'Signal Strength (dBm)',
@@ -71,58 +72,40 @@ const I18n = (() => {
       'heatmap.showPins': 'Show Pins',
       'heatmap.showRouters': 'Show Routers',
       'heatmap.showRooms': 'Show Rooms',
-
-      // AI
       'ai.title': '🧠 AI Analysis',
       'ai.analyze': 'Analyze Network',
       'ai.report.title': '🧠 AI WiFi Analysis Report',
       'ai.report.print': '🖨️ Print Report',
       'ai.report.pdf': '📄 Download PDF',
       'ai.report.ok': 'OK',
-
-      // Export
       'export.title': 'Export',
       'export.png': '📷 Save PNG',
       'export.json': '📄 Download JSON',
       'export.csv': '📊 Download CSV',
       'export.report': '📋 Generate Report',
-
-      // Welcome
       'welcome.title': 'Welcome to WifiMapper',
       'welcome.desc': 'Upload a floor plan or start drawing directly to map your WiFi coverage.',
       'welcome.upload': '📁 Upload Floor Plan',
       'welcome.draw': '✏️ Start with Blank Canvas',
       'welcome.hint': 'Supports PNG, JPG, and SVG formats',
-
-      // Polygon Actions
       'polygon.hint': 'Click corners to draw a room:',
       'polygon.togglePins': 'Hide Measurements',
       'polygon.togglePinsShow': 'Show Measurements',
       'polygon.complete': 'Complete',
       'polygon.cancel': 'Cancel',
-
-      // Measurement Overlay
       'measure.result': 'Measurement Result',
-
-      // Tooltip
       'tooltip.signal': 'Signal',
       'tooltip.snr': 'SNR',
       'tooltip.download': 'Download',
       'tooltip.upload': 'Upload',
       'tooltip.latency': 'Latency',
-
-      // Details Panel
-      'details.title': 'Details',
+      'details.title': 'Current Connection',
       'details.empty': 'Select a measurement point on the map to see details.',
-      'details.measurements': 'Measurements',
+      'details.measurements': 'Selected Measurement',
       'details.noMeasurements': 'No measurements yet. Select the Measure tool and click on the map.',
-
-      // Status Bar
       'status.tool': 'Tool',
       'status.measurements': 'measurements',
       'status.routers': 'routers',
-
-      // Modals
       'modal.newProject': '📁 New Project',
       'modal.projectName': 'Project Name',
       'modal.projectPlaceholder': 'e.g., Home WiFi Survey',
@@ -137,12 +120,8 @@ const I18n = (() => {
       'modal.router.mesh': '🔗 Mesh System Device',
       'modal.router.add': 'Add',
       'modal.measuring.title': '📡 Measuring...',
-
-      // Context Menu
       'ctx.rename': '✏️ Rename',
       'ctx.delete': '🗑️ Delete',
-
-      // AI Analysis Strings
       'ai.overallScore': 'Overall Score',
       'ai.meshInfo': 'devices marked as <strong>Mesh System</strong>. Same channel/SSID usage is normal for Mesh networks, interference warnings between these devices are disabled.',
       'ai.roomAnalysis': '🏠 Room-by-Room WiFi Status',
@@ -156,49 +135,50 @@ const I18n = (() => {
       'ai.unnamed': 'Unnamed Room',
       'ai.measurements': 'measurements',
       'ai.avg': 'Avg',
-
-      // Spectrum Legend
       'legend.title': 'Spectrum Ruler',
       'legend.dbm': 'dBm',
       'legend.speed': 'Speed',
       'legend.allBands': 'All Bands',
       'legend.points': 'measurement points',
-
-      // Confirmations
       'confirm.deleteRoom': 'room(s) will be deleted. Are you sure?',
       'confirm.deleteProject': 'This project will be permanently deleted. Are you sure?',
       'confirm.clearFloorplan': 'Clear the floor plan image?',
-
-      // Status Messages
       'status.saved': 'Project saved',
       'status.deleted': 'deleted',
       'status.roomsDeleted': 'rooms deleted',
       'status.noRooms': 'No rooms to delete',
       'status.measureMode': 'Measure mode: Click on map to add measurement point',
-
-      // Signal Quality
       'quality.excellent': 'Excellent Signal',
       'quality.veryGood': 'Very Good Signal',
       'quality.good': 'Good Signal',
       'quality.weak': 'Weak Signal',
       'quality.veryWeak': 'Very Weak Signal',
-
-      // Device Badge
       'device.mobile': 'Mobile',
       'device.tablet': 'Tablet',
       'device.desktop': 'Desktop',
+      'stats.title': 'Summary Statistics',
+      'stats.total': 'Total Measurements',
+      'stats.best': 'Best Signal',
+      'stats.worst': 'Worst Signal',
+      'stats.avgDl': 'Avg. TX Rate',
+      'stats.allMeasurements': 'All Measurements',
+      'measuring.sample': 'Sample',
+      'measuring.switchBand': 'Please switch to the other WiFi band and click the button below.',
+      'measuring.skipBand': 'Skip This Band',
+      'measuring.continue': 'Switched, Continue',
+      'measuring.remeasure': '🔄 Re-measure',
     },
 
+    // ═══════════════════════════════════════════════════════
+    // TURKISH
+    // ═══════════════════════════════════════════════════════
     tr: {
-      // Header
       'app.title': 'WifiMapper',
       'project.select': '— Proje Seç —',
       'project.new': 'Yeni Proje',
       'project.save': 'Kaydet',
       'project.delete': 'Sil',
       'wifi.waiting': 'Bağlantı bekleniyor…',
-
-      // Tools
       'tools.title': 'Araçlar',
       'tool.select': 'Seç',
       'tool.measure': 'Ölçüm',
@@ -209,13 +189,9 @@ const I18n = (() => {
       'tool.text': 'Metin',
       'tool.eraser': 'Sil',
       'tools.clearRooms': '🗑️ Tüm Odaları Sil',
-
-      // Floor Plan
       'floorplan.title': 'Kat Planı',
       'floorplan.upload': '📁 Resim Yükle',
       'floorplan.clear': '🧹 Temizle',
-
-      // Measurement Mode
       'mode.title': 'Ölçüm Modu',
       'mode.smart': '⚡ Çift Bant (Akıllı Hibrit)',
       'mode.manual': '🔄 Çift Bant (Adım Adım Tam)',
@@ -225,20 +201,15 @@ const I18n = (() => {
       'mode.hint.manual': 'Adım Adım: Önce bağlı bandı test eder, sonra diğer banda geçmenizi isteyip orayı da test eder.',
       'mode.hint.current': 'Tek Bant: Sadece o anda bağlı olduğunuz bandı ölçer.',
       'mode.hint.quick': '⚠️ Hızlı mod tek bir örneklem alır. Analizlerimize göre ölçümlerin %64\'ünde ≥3 dBm, %27\'sinde ≥5 dBm sapma var. Sonuçlar daha az doğru olabilir.',
-
-      // Sample count
       'sample.title': 'Örneklem Sayısı',
       'sample.1': '🚀 Hızlı (1 örneklem)',
       'sample.3': '⚡ Orta (3 örneklem)',
       'sample.5': '📊 Standart (5 örneklem)',
       'sample.quickWarning': '⚠️ Hızlı mod: Tek örneklem hatalı sonuç verebilir. Testlerimizde ölçümlerin %64\'ünde 5 örneklemde ≥3 dBm sapma tespit edildi.',
-
-      // Draw Options
+      'sample.fastHint': '3 örneklem hız ve doğruluk arasında iyi bir denge sağlar.',
       'draw.title': 'Çizim Ayarları',
       'draw.color': 'Renk',
       'draw.width': 'Kalınlık',
-
-      // Heatmap
       'heatmap.title': 'Heatmap',
       'heatmap.layer': 'Katman',
       'heatmap.layer.signal': 'Sinyal Gücü (dBm)',
@@ -254,58 +225,40 @@ const I18n = (() => {
       'heatmap.showPins': 'Pin\'leri Göster',
       'heatmap.showRouters': 'Modemleri Göster',
       'heatmap.showRooms': 'Odaları Göster',
-
-      // AI
       'ai.title': '🧠 Yapay Zeka (AI)',
       'ai.analyze': 'Ağ Analizi Yap',
       'ai.report.title': '🧠 AI WiFi Analiz Raporu',
       'ai.report.print': '🖨️ Raporu Yazdır',
       'ai.report.pdf': '📄 PDF İndir',
       'ai.report.ok': 'Tamam',
-
-      // Export
       'export.title': 'Dışa Aktar',
       'export.png': '📷 PNG Kaydet',
       'export.json': '📄 JSON İndir',
       'export.csv': '📊 CSV İndir',
       'export.report': '📋 Rapor Oluştur',
-
-      // Welcome
       'welcome.title': 'WifiMapper\'a Hoş Geldiniz',
       'welcome.desc': 'WiFi kapsama alanınızı haritalamaya başlamak için bir kat planı yükleyin veya doğrudan çizim yapın.',
       'welcome.upload': '📁 Kat Planı Yükle',
       'welcome.draw': '✏️ Boş Canvas ile Başla',
       'welcome.hint': 'PNG, JPG veya SVG formatlarını destekler',
-
-      // Polygon Actions
       'polygon.hint': 'Köşeleri tıklayarak oda çizin:',
       'polygon.togglePins': 'Ölçümleri Gizle',
       'polygon.togglePinsShow': 'Ölçümleri Göster',
       'polygon.complete': 'Tamamla',
       'polygon.cancel': 'İptal',
-
-      // Measurement Overlay
       'measure.result': 'Ölçüm Sonucu',
-
-      // Tooltip
       'tooltip.signal': 'Sinyal',
       'tooltip.snr': 'SNR',
       'tooltip.download': 'Download',
       'tooltip.upload': 'Upload',
       'tooltip.latency': 'Gecikme',
-
-      // Details Panel
-      'details.title': 'Detaylar',
+      'details.title': 'Mevcut Bağlantı',
       'details.empty': 'Detayları görmek için haritadaki bir ölçüm noktasını seçin.',
-      'details.measurements': 'Ölçümler',
+      'details.measurements': 'Seçili Ölçüm',
       'details.noMeasurements': 'Henüz ölçüm yok. Ölçüm aracını seçin ve haritaya tıklayın.',
-
-      // Status Bar
       'status.tool': 'Araç',
       'status.measurements': 'ölçüm',
       'status.routers': 'modem',
-
-      // Modals
       'modal.newProject': '📁 Yeni Proje',
       'modal.projectName': 'Proje Adı',
       'modal.projectPlaceholder': 'Örn: Ev WiFi Taraması',
@@ -320,12 +273,8 @@ const I18n = (() => {
       'modal.router.mesh': '🔗 Mesh Sistem Cihazı',
       'modal.router.add': 'Ekle',
       'modal.measuring.title': '📡 Ölçülüyor...',
-
-      // Context Menu
       'ctx.rename': '✏️ İsmi Değiştir',
       'ctx.delete': '🗑️ Sil',
-
-      // AI Analysis Strings
       'ai.overallScore': 'Genel Durum',
       'ai.meshInfo': 'cihaz <strong>Mesh Sistem</strong> olarak işaretlenmiş. Aynı kanal ve SSID kullanımı Mesh ağlar için normaldir, bu cihazlar arası çakışma uyarıları devre dışı bırakıldı.',
       'ai.roomAnalysis': '🏠 Oda Bazlı WiFi Durumu',
@@ -339,43 +288,644 @@ const I18n = (() => {
       'ai.unnamed': 'İsimsiz Oda',
       'ai.measurements': 'ölçüm',
       'ai.avg': 'Ort',
-
-      // Spectrum Legend
       'legend.title': 'Spektrum Cetveli',
       'legend.dbm': 'dBm',
       'legend.speed': 'Hız',
       'legend.allBands': 'Tüm Bantlar',
       'legend.points': 'ölçüm noktası',
-
-      // Confirmations
       'confirm.deleteRoom': 'adet oda silinecek. Emin misiniz?',
       'confirm.deleteProject': 'Bu proje kalıcı olarak silinecek. Emin misiniz?',
       'confirm.clearFloorplan': 'Kat planı temizlensin mi?',
-
-      // Status Messages
       'status.saved': 'Proje kaydedildi',
       'status.deleted': 'silindi',
       'status.roomsDeleted': 'oda silindi',
       'status.noRooms': 'Silinecek oda bulunamadı',
       'status.measureMode': 'Ölçüm modu: Haritaya tıklayarak ölçüm noktası ekleyin',
-
-      // Signal Quality
       'quality.excellent': 'Mükemmel Sinyal',
       'quality.veryGood': 'Çok İyi Sinyal',
       'quality.good': 'İyi Sinyal',
       'quality.weak': 'Zayıf Sinyal',
       'quality.veryWeak': 'Çok Zayıf Sinyal',
-
-      // Device Badge
       'device.mobile': 'Mobil',
       'device.tablet': 'Tablet',
       'device.desktop': 'Masaüstü',
+      'stats.title': 'Özet İstatistikler',
+      'stats.total': 'Toplam Ölçüm',
+      'stats.best': 'En İyi Sinyal',
+      'stats.worst': 'En Kötü Sinyal',
+      'stats.avgDl': 'Ort. TX Rate',
+      'stats.allMeasurements': 'Tüm Ölçümler',
+      'measuring.sample': 'Örneklem',
+      'measuring.switchBand': 'Lütfen diğer WiFi bandına geçin ve aşağıdaki butona tıklayın.',
+      'measuring.skipBand': 'Bu Bandı Atla',
+      'measuring.continue': 'Geçiş Yaptım, Devam Et',
+      'measuring.remeasure': '🔄 Yeniden Ölç',
+    },
+
+    // ═══════════════════════════════════════════════════════
+    // SPANISH
+    // ═══════════════════════════════════════════════════════
+    es: {
+      'app.title': 'WifiMapper',
+      'project.select': '— Seleccionar Proyecto —',
+      'project.new': 'Nuevo Proyecto',
+      'project.save': 'Guardar',
+      'project.delete': 'Eliminar',
+      'wifi.waiting': 'Esperando conexión…',
+      'tools.title': 'Herramientas',
+      'tool.select': 'Seleccionar',
+      'tool.measure': 'Medir',
+      'tool.router': 'Router/AP',
+      'tool.drawRect': 'Rectángulo',
+      'tool.polygon': 'Polígono',
+      'tool.wall': 'Pared',
+      'tool.text': 'Texto',
+      'tool.eraser': 'Borrar',
+      'tools.clearRooms': '🗑️ Borrar Todas las Salas',
+      'floorplan.title': 'Plano de Planta',
+      'floorplan.upload': '📁 Subir Imagen',
+      'floorplan.clear': '🧹 Limpiar',
+      'mode.title': 'Modo de Medición',
+      'mode.smart': '⚡ Doble Banda (Híbrido Inteligente)',
+      'mode.manual': '🔄 Doble Banda (Paso a Paso)',
+      'mode.current': '📶 Banda Única (Solo Conectada)',
+      'mode.quick': '🚀 Rápido (1 Muestra)',
+      'mode.hint.smart': 'Híbrido Inteligente: Mide la banda conectada, escanea la otra banda y estima su velocidad según la señal.',
+      'mode.hint.manual': 'Paso a Paso: Primero prueba la banda conectada, luego te pide cambiar y prueba la otra banda.',
+      'mode.hint.current': 'Banda Única: Mide solo la banda actualmente conectada.',
+      'mode.hint.quick': '⚠️ El modo rápido toma una sola muestra. Según nuestro análisis, el 64% de las mediciones muestran ≥3 dBm de varianza en 5 muestras.',
+      'sample.title': 'Cantidad de Muestras',
+      'sample.1': '🚀 Rápido (1 muestra)',
+      'sample.3': '⚡ Medio (3 muestras)',
+      'sample.5': '📊 Estándar (5 muestras)',
+      'sample.quickWarning': '⚠️ Modo rápido: Una sola muestra puede ser imprecisa. En nuestras pruebas, el 64% de las mediciones mostraron ≥3 dBm de varianza.',
+      'sample.fastHint': '3 muestras proporcionan un buen equilibrio entre velocidad y precisión.',
+      'draw.title': 'Ajustes de Dibujo',
+      'draw.color': 'Color',
+      'draw.width': 'Grosor',
+      'heatmap.title': 'Mapa de Calor',
+      'heatmap.layer': 'Capa',
+      'heatmap.layer.signal': 'Intensidad de Señal (dBm)',
+      'heatmap.layer.download': 'Velocidad de Enlace (TX Rate)',
+      'heatmap.layer.snr': 'SNR (dB)',
+      'heatmap.layer.noise': 'Nivel de Ruido (dBm)',
+      'heatmap.band': 'Filtro de Banda',
+      'heatmap.band.all': 'Híbrido (Mejor Banda)',
+      'heatmap.band.24': 'Solo 2.4 GHz',
+      'heatmap.band.5': 'Solo 5 GHz',
+      'heatmap.show': 'Mostrar Mapa de Calor',
+      'heatmap.opacity': 'Opacidad',
+      'heatmap.showPins': 'Mostrar Pines',
+      'heatmap.showRouters': 'Mostrar Routers',
+      'heatmap.showRooms': 'Mostrar Salas',
+      'ai.title': '🧠 Análisis IA',
+      'ai.analyze': 'Analizar Red',
+      'ai.report.title': '🧠 Informe de Análisis WiFi IA',
+      'ai.report.print': '🖨️ Imprimir Informe',
+      'ai.report.pdf': '📄 Descargar PDF',
+      'ai.report.ok': 'Aceptar',
+      'export.title': 'Exportar',
+      'export.png': '📷 Guardar PNG',
+      'export.json': '📄 Descargar JSON',
+      'export.csv': '📊 Descargar CSV',
+      'export.report': '📋 Generar Informe',
+      'welcome.title': 'Bienvenido a WifiMapper',
+      'welcome.desc': 'Sube un plano de planta o comienza a dibujar directamente para mapear tu cobertura WiFi.',
+      'welcome.upload': '📁 Subir Plano',
+      'welcome.draw': '✏️ Comenzar con Lienzo en Blanco',
+      'welcome.hint': 'Compatible con formatos PNG, JPG y SVG',
+      'polygon.hint': 'Haz clic en las esquinas para dibujar una sala:',
+      'polygon.togglePins': 'Ocultar Mediciones',
+      'polygon.togglePinsShow': 'Mostrar Mediciones',
+      'polygon.complete': 'Completar',
+      'polygon.cancel': 'Cancelar',
+      'measure.result': 'Resultado de Medición',
+      'tooltip.signal': 'Señal',
+      'tooltip.snr': 'SNR',
+      'tooltip.download': 'Descarga',
+      'tooltip.upload': 'Subida',
+      'tooltip.latency': 'Latencia',
+      'details.title': 'Conexión Actual',
+      'details.empty': 'Selecciona un punto de medición en el mapa para ver detalles.',
+      'details.measurements': 'Medición Seleccionada',
+      'details.noMeasurements': 'Sin mediciones aún. Selecciona la herramienta Medir y haz clic en el mapa.',
+      'status.tool': 'Herramienta',
+      'status.measurements': 'mediciones',
+      'status.routers': 'routers',
+      'modal.newProject': '📁 Nuevo Proyecto',
+      'modal.projectName': 'Nombre del Proyecto',
+      'modal.projectPlaceholder': 'Ej: Análisis WiFi del Hogar',
+      'modal.create': 'Crear',
+      'modal.cancel': 'Cancelar',
+      'modal.router.title': '📡 Añadir Router / AP',
+      'modal.router.name': 'Nombre del Router',
+      'modal.router.namePlaceholder': 'Ej: Router del Salón',
+      'modal.router.band': 'Banda',
+      'modal.router.channel': 'Canal (5 GHz)',
+      'modal.router.channel24': 'Canal (2.4 GHz)',
+      'modal.router.mesh': '🔗 Dispositivo Mesh',
+      'modal.router.add': 'Añadir',
+      'modal.measuring.title': '📡 Midiendo...',
+      'ctx.rename': '✏️ Renombrar',
+      'ctx.delete': '🗑️ Eliminar',
+      'ai.overallScore': 'Puntuación General',
+      'ai.excellent': 'Excelente',
+      'ai.good': 'Bueno',
+      'ai.fair': 'Regular',
+      'ai.weak': 'Débil',
+      'ai.veryWeak': 'Muy Débil',
+      'ai.unnamed': 'Sala sin Nombre',
+      'ai.measurements': 'mediciones',
+      'ai.avg': 'Prom',
+      'ai.roomAnalysis': '🏠 Estado WiFi por Sala',
+      'ai.noMeasurement': 'Sin Medición',
+      'legend.title': 'Escala Espectral',
+      'legend.dbm': 'dBm',
+      'legend.speed': 'Velocidad',
+      'legend.allBands': 'Todas las Bandas',
+      'legend.points': 'puntos de medición',
+      'confirm.deleteRoom': 'sala(s) serán eliminadas. ¿Estás seguro?',
+      'confirm.deleteProject': 'Este proyecto se eliminará permanentemente. ¿Estás seguro?',
+      'confirm.clearFloorplan': '¿Limpiar la imagen del plano?',
+      'status.saved': 'Proyecto guardado',
+      'status.deleted': 'eliminado',
+      'status.roomsDeleted': 'salas eliminadas',
+      'status.noRooms': 'No hay salas para eliminar',
+      'quality.excellent': 'Señal Excelente',
+      'quality.veryGood': 'Señal Muy Buena',
+      'quality.good': 'Señal Buena',
+      'quality.weak': 'Señal Débil',
+      'quality.veryWeak': 'Señal Muy Débil',
+      'device.mobile': 'Móvil',
+      'device.tablet': 'Tablet',
+      'device.desktop': 'Escritorio',
+      'stats.title': 'Estadísticas Resumen',
+      'stats.total': 'Total Mediciones',
+      'stats.best': 'Mejor Señal',
+      'stats.worst': 'Peor Señal',
+      'stats.avgDl': 'TX Rate Prom.',
+      'stats.allMeasurements': 'Todas las Mediciones',
+      'measuring.sample': 'Muestra',
+      'measuring.switchBand': 'Cambia a la otra banda WiFi y haz clic en el botón de abajo.',
+      'measuring.skipBand': 'Omitir esta Banda',
+      'measuring.continue': 'Ya cambié, Continuar',
+      'measuring.remeasure': '🔄 Re-medir',
+    },
+
+    // ═══════════════════════════════════════════════════════
+    // GERMAN
+    // ═══════════════════════════════════════════════════════
+    de: {
+      'app.title': 'WifiMapper',
+      'project.select': '— Projekt wählen —',
+      'project.new': 'Neues Projekt',
+      'project.save': 'Speichern',
+      'project.delete': 'Löschen',
+      'wifi.waiting': 'Warte auf Verbindung…',
+      'tools.title': 'Werkzeuge',
+      'tool.select': 'Auswahl',
+      'tool.measure': 'Messen',
+      'tool.router': 'Router/AP',
+      'tool.drawRect': 'Rechteck',
+      'tool.polygon': 'Polygon',
+      'tool.wall': 'Wand',
+      'tool.text': 'Text',
+      'tool.eraser': 'Radierer',
+      'tools.clearRooms': '🗑️ Alle Räume löschen',
+      'floorplan.title': 'Grundriss',
+      'floorplan.upload': '📁 Bild hochladen',
+      'floorplan.clear': '🧹 Leeren',
+      'mode.title': 'Messmodus',
+      'mode.smart': '⚡ Dualband (Smart-Hybrid)',
+      'mode.manual': '🔄 Dualband (Schritt für Schritt)',
+      'mode.current': '📶 Einzelband (Nur Verbunden)',
+      'mode.quick': '🚀 Schnell (1 Probe)',
+      'mode.hint.smart': 'Smart-Hybrid: Misst das verbundene Band, scannt das andere und schätzt die Geschwindigkeit basierend auf dem Signal.',
+      'mode.hint.manual': 'Schritt für Schritt: Testet zuerst das verbundene Band, fordert dann zum Wechsel auf.',
+      'mode.hint.current': 'Einzelband: Misst nur das aktuell verbundene Band.',
+      'mode.hint.quick': '⚠️ Schnellmodus nimmt nur eine Probe. Laut unserer Analyse zeigen 64% der Messungen ≥3 dBm Varianz bei 5 Proben.',
+      'sample.title': 'Probenanzahl',
+      'sample.1': '🚀 Schnell (1 Probe)',
+      'sample.3': '⚡ Mittel (3 Proben)',
+      'sample.5': '📊 Standard (5 Proben)',
+      'sample.quickWarning': '⚠️ Schnellmodus: Eine einzelne Probe kann ungenau sein. In unseren Tests zeigten 64% der Messungen ≥3 dBm Varianz.',
+      'sample.fastHint': '3 Proben bieten eine gute Balance zwischen Geschwindigkeit und Genauigkeit.',
+      'draw.title': 'Zeicheneinstellungen',
+      'draw.color': 'Farbe',
+      'draw.width': 'Stärke',
+      'heatmap.title': 'Heatmap',
+      'heatmap.layer': 'Schicht',
+      'heatmap.layer.signal': 'Signalstärke (dBm)',
+      'heatmap.layer.download': 'Verbindungsgeschwindigkeit (TX Rate)',
+      'heatmap.layer.snr': 'SNR (dB)',
+      'heatmap.layer.noise': 'Rauschpegel (dBm)',
+      'heatmap.band': 'Bandfilter',
+      'heatmap.band.all': 'Hybrid (Bestes Band)',
+      'heatmap.band.24': 'Nur 2,4 GHz',
+      'heatmap.band.5': 'Nur 5 GHz',
+      'heatmap.show': 'Heatmap anzeigen',
+      'heatmap.opacity': 'Transparenz',
+      'heatmap.showPins': 'Pins anzeigen',
+      'heatmap.showRouters': 'Router anzeigen',
+      'heatmap.showRooms': 'Räume anzeigen',
+      'ai.title': '🧠 KI-Analyse',
+      'ai.analyze': 'Netzwerk analysieren',
+      'ai.report.title': '🧠 KI WiFi-Analysebericht',
+      'ai.report.print': '🖨️ Bericht drucken',
+      'ai.report.pdf': '📄 PDF herunterladen',
+      'ai.report.ok': 'OK',
+      'export.title': 'Exportieren',
+      'export.png': '📷 PNG speichern',
+      'export.json': '📄 JSON herunterladen',
+      'export.csv': '📊 CSV herunterladen',
+      'export.report': '📋 Bericht erstellen',
+      'welcome.title': 'Willkommen bei WifiMapper',
+      'welcome.desc': 'Laden Sie einen Grundriss hoch oder zeichnen Sie direkt, um Ihre WLAN-Abdeckung zu kartieren.',
+      'welcome.upload': '📁 Grundriss hochladen',
+      'welcome.draw': '✏️ Mit leerer Leinwand starten',
+      'welcome.hint': 'Unterstützt PNG, JPG und SVG',
+      'polygon.hint': 'Klicken Sie auf die Ecken, um einen Raum zu zeichnen:',
+      'polygon.togglePins': 'Messungen ausblenden',
+      'polygon.togglePinsShow': 'Messungen anzeigen',
+      'polygon.complete': 'Fertig',
+      'polygon.cancel': 'Abbrechen',
+      'measure.result': 'Messergebnis',
+      'tooltip.signal': 'Signal',
+      'tooltip.snr': 'SNR',
+      'tooltip.download': 'Download',
+      'tooltip.upload': 'Upload',
+      'tooltip.latency': 'Latenz',
+      'details.title': 'Aktuelle Verbindung',
+      'details.empty': 'Wählen Sie einen Messpunkt auf der Karte aus.',
+      'details.measurements': 'Ausgewählte Messung',
+      'details.noMeasurements': 'Noch keine Messungen. Wählen Sie das Messwerkzeug und klicken Sie auf die Karte.',
+      'status.tool': 'Werkzeug',
+      'status.measurements': 'Messungen',
+      'status.routers': 'Router',
+      'modal.newProject': '📁 Neues Projekt',
+      'modal.projectName': 'Projektname',
+      'modal.projectPlaceholder': 'z.B. Heim-WLAN-Analyse',
+      'modal.create': 'Erstellen',
+      'modal.cancel': 'Abbrechen',
+      'modal.router.title': '📡 Router / AP hinzufügen',
+      'modal.router.name': 'Routername',
+      'modal.router.namePlaceholder': 'z.B. Wohnzimmer-Router',
+      'modal.router.band': 'Band',
+      'modal.router.channel': 'Kanal (5 GHz)',
+      'modal.router.channel24': 'Kanal (2,4 GHz)',
+      'modal.router.mesh': '🔗 Mesh-System-Gerät',
+      'modal.router.add': 'Hinzufügen',
+      'modal.measuring.title': '📡 Messung läuft...',
+      'ctx.rename': '✏️ Umbenennen',
+      'ctx.delete': '🗑️ Löschen',
+      'ai.overallScore': 'Gesamtbewertung',
+      'ai.excellent': 'Ausgezeichnet',
+      'ai.good': 'Gut',
+      'ai.fair': 'Mäßig',
+      'ai.weak': 'Schwach',
+      'ai.veryWeak': 'Sehr Schwach',
+      'ai.unnamed': 'Unbenannter Raum',
+      'ai.measurements': 'Messungen',
+      'ai.avg': 'Ø',
+      'ai.roomAnalysis': '🏠 WLAN-Status pro Raum',
+      'ai.noMeasurement': 'Keine Messung',
+      'legend.title': 'Spektralskala',
+      'legend.dbm': 'dBm',
+      'legend.speed': 'Geschwindigkeit',
+      'legend.allBands': 'Alle Bänder',
+      'legend.points': 'Messpunkte',
+      'confirm.deleteRoom': 'Raum/Räume werden gelöscht. Sind Sie sicher?',
+      'confirm.deleteProject': 'Dieses Projekt wird dauerhaft gelöscht. Sind Sie sicher?',
+      'confirm.clearFloorplan': 'Grundriss leeren?',
+      'status.saved': 'Projekt gespeichert',
+      'status.deleted': 'gelöscht',
+      'status.roomsDeleted': 'Räume gelöscht',
+      'status.noRooms': 'Keine Räume zum Löschen',
+      'quality.excellent': 'Ausgezeichnetes Signal',
+      'quality.veryGood': 'Sehr gutes Signal',
+      'quality.good': 'Gutes Signal',
+      'quality.weak': 'Schwaches Signal',
+      'quality.veryWeak': 'Sehr schwaches Signal',
+      'device.mobile': 'Mobil',
+      'device.tablet': 'Tablet',
+      'device.desktop': 'Desktop',
+      'stats.title': 'Zusammenfassung',
+      'stats.total': 'Messungen gesamt',
+      'stats.best': 'Bestes Signal',
+      'stats.worst': 'Schwächstes Signal',
+      'stats.avgDl': 'Ø TX Rate',
+      'stats.allMeasurements': 'Alle Messungen',
+      'measuring.sample': 'Probe',
+      'measuring.switchBand': 'Bitte wechseln Sie zum anderen WLAN-Band und klicken Sie unten.',
+      'measuring.skipBand': 'Band überspringen',
+      'measuring.continue': 'Gewechselt, Weiter',
+      'measuring.remeasure': '🔄 Neu messen',
+    },
+
+    // ═══════════════════════════════════════════════════════
+    // RUSSIAN
+    // ═══════════════════════════════════════════════════════
+    ru: {
+      'app.title': 'WifiMapper',
+      'project.select': '— Выбрать проект —',
+      'project.new': 'Новый проект',
+      'project.save': 'Сохранить',
+      'project.delete': 'Удалить',
+      'wifi.waiting': 'Ожидание подключения…',
+      'tools.title': 'Инструменты',
+      'tool.select': 'Выбор',
+      'tool.measure': 'Измерить',
+      'tool.router': 'Роутер/AP',
+      'tool.drawRect': 'Прямоугольник',
+      'tool.polygon': 'Многоугольник',
+      'tool.wall': 'Стена',
+      'tool.text': 'Текст',
+      'tool.eraser': 'Ластик',
+      'tools.clearRooms': '🗑️ Удалить все комнаты',
+      'floorplan.title': 'План этажа',
+      'floorplan.upload': '📁 Загрузить изображение',
+      'floorplan.clear': '🧹 Очистить',
+      'mode.title': 'Режим измерения',
+      'mode.smart': '⚡ Двухдиапазонный (Смарт-гибрид)',
+      'mode.manual': '🔄 Двухдиапазонный (Пошагово)',
+      'mode.current': '📶 Однодиапазонный (Только подключённый)',
+      'mode.quick': '🚀 Быстрый (1 проба)',
+      'mode.hint.smart': 'Смарт-гибрид: Измеряет подключённый диапазон, сканирует другой и оценивает скорость по сигналу.',
+      'mode.hint.manual': 'Пошагово: Сначала тестирует подключённый диапазон, затем просит переключиться.',
+      'mode.hint.current': 'Однодиапазонный: Измеряет только текущий подключённый диапазон.',
+      'mode.hint.quick': '⚠️ Быстрый режим берёт одну пробу. По нашему анализу, 64% измерений показывают ≥3 дБм отклонение при 5 пробах.',
+      'sample.title': 'Количество проб',
+      'sample.1': '🚀 Быстро (1 проба)',
+      'sample.3': '⚡ Средне (3 пробы)',
+      'sample.5': '📊 Стандарт (5 проб)',
+      'sample.quickWarning': '⚠️ Быстрый режим: Одна проба может быть неточной. В наших тестах 64% измерений показали ≥3 дБм отклонение.',
+      'sample.fastHint': '3 пробы обеспечивают хороший баланс между скоростью и точностью.',
+      'draw.title': 'Настройки рисования',
+      'draw.color': 'Цвет',
+      'draw.width': 'Толщина',
+      'heatmap.title': 'Тепловая карта',
+      'heatmap.layer': 'Слой',
+      'heatmap.layer.signal': 'Уровень сигнала (дБм)',
+      'heatmap.layer.download': 'Скорость соединения (TX Rate)',
+      'heatmap.layer.snr': 'SNR (дБ)',
+      'heatmap.layer.noise': 'Уровень шума (дБм)',
+      'heatmap.band': 'Фильтр диапазона',
+      'heatmap.band.all': 'Гибрид (Лучший диапазон)',
+      'heatmap.band.24': 'Только 2,4 ГГц',
+      'heatmap.band.5': 'Только 5 ГГц',
+      'heatmap.show': 'Показать тепловую карту',
+      'heatmap.opacity': 'Прозрачность',
+      'heatmap.showPins': 'Показать метки',
+      'heatmap.showRouters': 'Показать роутеры',
+      'heatmap.showRooms': 'Показать комнаты',
+      'ai.title': '🧠 ИИ-анализ',
+      'ai.analyze': 'Анализ сети',
+      'ai.report.title': '🧠 Отчёт ИИ-анализа WiFi',
+      'ai.report.print': '🖨️ Печать отчёта',
+      'ai.report.pdf': '📄 Скачать PDF',
+      'ai.report.ok': 'ОК',
+      'export.title': 'Экспорт',
+      'export.png': '📷 Сохранить PNG',
+      'export.json': '📄 Скачать JSON',
+      'export.csv': '📊 Скачать CSV',
+      'export.report': '📋 Создать отчёт',
+      'welcome.title': 'Добро пожаловать в WifiMapper',
+      'welcome.desc': 'Загрузите план этажа или начните рисовать, чтобы картировать покрытие WiFi.',
+      'welcome.upload': '📁 Загрузить план',
+      'welcome.draw': '✏️ Начать с чистого холста',
+      'welcome.hint': 'Поддерживает PNG, JPG и SVG',
+      'polygon.hint': 'Нажимайте на углы, чтобы нарисовать комнату:',
+      'polygon.togglePins': 'Скрыть измерения',
+      'polygon.togglePinsShow': 'Показать измерения',
+      'polygon.complete': 'Завершить',
+      'polygon.cancel': 'Отмена',
+      'measure.result': 'Результат измерения',
+      'tooltip.signal': 'Сигнал',
+      'tooltip.snr': 'SNR',
+      'tooltip.download': 'Загрузка',
+      'tooltip.upload': 'Отдача',
+      'tooltip.latency': 'Задержка',
+      'details.title': 'Текущее соединение',
+      'details.empty': 'Выберите точку измерения на карте для просмотра деталей.',
+      'details.measurements': 'Выбранное измерение',
+      'details.noMeasurements': 'Пока нет измерений. Выберите инструмент измерения и нажмите на карту.',
+      'status.tool': 'Инструмент',
+      'status.measurements': 'измерений',
+      'status.routers': 'роутеров',
+      'modal.newProject': '📁 Новый проект',
+      'modal.projectName': 'Название проекта',
+      'modal.projectPlaceholder': 'Напр.: Анализ WiFi дома',
+      'modal.create': 'Создать',
+      'modal.cancel': 'Отмена',
+      'modal.router.title': '📡 Добавить роутер / AP',
+      'modal.router.name': 'Название роутера',
+      'modal.router.namePlaceholder': 'Напр.: Роутер гостиной',
+      'modal.router.band': 'Диапазон',
+      'modal.router.channel': 'Канал (5 ГГц)',
+      'modal.router.channel24': 'Канал (2,4 ГГц)',
+      'modal.router.mesh': '🔗 Mesh-устройство',
+      'modal.router.add': 'Добавить',
+      'modal.measuring.title': '📡 Измерение...',
+      'ctx.rename': '✏️ Переименовать',
+      'ctx.delete': '🗑️ Удалить',
+      'ai.overallScore': 'Общая оценка',
+      'ai.excellent': 'Отлично',
+      'ai.good': 'Хорошо',
+      'ai.fair': 'Средне',
+      'ai.weak': 'Слабо',
+      'ai.veryWeak': 'Очень Слабо',
+      'ai.unnamed': 'Безымянная комната',
+      'ai.measurements': 'измерений',
+      'ai.avg': 'Сред.',
+      'ai.roomAnalysis': '🏠 Состояние WiFi по комнатам',
+      'ai.noMeasurement': 'Нет измерений',
+      'legend.title': 'Спектральная шкала',
+      'legend.dbm': 'дБм',
+      'legend.speed': 'Скорость',
+      'legend.allBands': 'Все диапазоны',
+      'legend.points': 'точек измерения',
+      'confirm.deleteRoom': 'комната(ы) будут удалены. Вы уверены?',
+      'confirm.deleteProject': 'Этот проект будет удалён навсегда. Вы уверены?',
+      'confirm.clearFloorplan': 'Очистить план этажа?',
+      'status.saved': 'Проект сохранён',
+      'status.deleted': 'удалён',
+      'status.roomsDeleted': 'комнат удалено',
+      'status.noRooms': 'Нет комнат для удаления',
+      'quality.excellent': 'Отличный сигнал',
+      'quality.veryGood': 'Очень хороший сигнал',
+      'quality.good': 'Хороший сигнал',
+      'quality.weak': 'Слабый сигнал',
+      'quality.veryWeak': 'Очень слабый сигнал',
+      'device.mobile': 'Мобильный',
+      'device.tablet': 'Планшет',
+      'device.desktop': 'Компьютер',
+      'stats.title': 'Сводная статистика',
+      'stats.total': 'Всего измерений',
+      'stats.best': 'Лучший сигнал',
+      'stats.worst': 'Худший сигнал',
+      'stats.avgDl': 'Сред. TX Rate',
+      'stats.allMeasurements': 'Все измерения',
+      'measuring.sample': 'Проба',
+      'measuring.switchBand': 'Переключитесь на другой диапазон WiFi и нажмите кнопку ниже.',
+      'measuring.skipBand': 'Пропустить диапазон',
+      'measuring.continue': 'Переключил, Продолжить',
+      'measuring.remeasure': '🔄 Перемерить',
+    },
+
+    // ═══════════════════════════════════════════════════════
+    // CHINESE (Simplified)
+    // ═══════════════════════════════════════════════════════
+    zh: {
+      'app.title': 'WifiMapper',
+      'project.select': '— 选择项目 —',
+      'project.new': '新建项目',
+      'project.save': '保存',
+      'project.delete': '删除',
+      'wifi.waiting': '等待连接…',
+      'tools.title': '工具',
+      'tool.select': '选择',
+      'tool.measure': '测量',
+      'tool.router': '路由器/AP',
+      'tool.drawRect': '矩形',
+      'tool.polygon': '多边形',
+      'tool.wall': '墙壁',
+      'tool.text': '文本',
+      'tool.eraser': '擦除',
+      'tools.clearRooms': '🗑️ 清除所有房间',
+      'floorplan.title': '楼层平面图',
+      'floorplan.upload': '📁 上传图片',
+      'floorplan.clear': '🧹 清除',
+      'mode.title': '测量模式',
+      'mode.smart': '⚡ 双频段（智能混合）',
+      'mode.manual': '🔄 双频段（分步操作）',
+      'mode.current': '📶 单频段（仅已连接）',
+      'mode.quick': '🚀 快速（1个样本）',
+      'mode.hint.smart': '智能混合：测量已连接的频段，扫描另一个频段并根据信号估算速度。',
+      'mode.hint.manual': '分步操作：先测试已连接的频段，然后要求切换并测试另一个频段。',
+      'mode.hint.current': '单频段：仅测量当前连接的频段。',
+      'mode.hint.quick': '⚠️ 快速模式只取一个样本。根据分析，64%的测量在5个样本中显示≥3 dBm的偏差。',
+      'sample.title': '样本数量',
+      'sample.1': '🚀 快速（1个样本）',
+      'sample.3': '⚡ 中等（3个样本）',
+      'sample.5': '📊 标准（5个样本）',
+      'sample.quickWarning': '⚠️ 快速模式：单个样本可能不准确。在测试中，64%的测量显示≥3 dBm偏差。',
+      'sample.fastHint': '3个样本在速度和准确性之间提供了良好的平衡。',
+      'draw.title': '绘图设置',
+      'draw.color': '颜色',
+      'draw.width': '粗细',
+      'heatmap.title': '热力图',
+      'heatmap.layer': '图层',
+      'heatmap.layer.signal': '信号强度 (dBm)',
+      'heatmap.layer.download': '连接速度 (TX Rate)',
+      'heatmap.layer.snr': '信噪比 (dB)',
+      'heatmap.layer.noise': '噪声水平 (dBm)',
+      'heatmap.band': '频段筛选',
+      'heatmap.band.all': '混合（最佳频段）',
+      'heatmap.band.24': '仅 2.4 GHz',
+      'heatmap.band.5': '仅 5 GHz',
+      'heatmap.show': '显示热力图',
+      'heatmap.opacity': '透明度',
+      'heatmap.showPins': '显示标记',
+      'heatmap.showRouters': '显示路由器',
+      'heatmap.showRooms': '显示房间',
+      'ai.title': '🧠 AI 分析',
+      'ai.analyze': '分析网络',
+      'ai.report.title': '🧠 AI WiFi 分析报告',
+      'ai.report.print': '🖨️ 打印报告',
+      'ai.report.pdf': '📄 下载 PDF',
+      'ai.report.ok': '确定',
+      'export.title': '导出',
+      'export.png': '📷 保存 PNG',
+      'export.json': '📄 下载 JSON',
+      'export.csv': '📊 下载 CSV',
+      'export.report': '📋 生成报告',
+      'welcome.title': '欢迎使用 WifiMapper',
+      'welcome.desc': '上传楼层平面图或直接开始绘制，以映射您的WiFi覆盖范围。',
+      'welcome.upload': '📁 上传平面图',
+      'welcome.draw': '✏️ 空白画布开始',
+      'welcome.hint': '支持 PNG、JPG 和 SVG 格式',
+      'polygon.hint': '点击角落绘制房间：',
+      'polygon.togglePins': '隐藏测量',
+      'polygon.togglePinsShow': '显示测量',
+      'polygon.complete': '完成',
+      'polygon.cancel': '取消',
+      'measure.result': '测量结果',
+      'tooltip.signal': '信号',
+      'tooltip.snr': '信噪比',
+      'tooltip.download': '下载',
+      'tooltip.upload': '上传',
+      'tooltip.latency': '延迟',
+      'details.title': '当前连接',
+      'details.empty': '在地图上选择测量点以查看详情。',
+      'details.measurements': '选定的测量',
+      'details.noMeasurements': '暂无测量。选择测量工具并点击地图。',
+      'status.tool': '工具',
+      'status.measurements': '个测量',
+      'status.routers': '个路由器',
+      'modal.newProject': '📁 新建项目',
+      'modal.projectName': '项目名称',
+      'modal.projectPlaceholder': '例：家庭WiFi调查',
+      'modal.create': '创建',
+      'modal.cancel': '取消',
+      'modal.router.title': '📡 添加路由器 / AP',
+      'modal.router.name': '路由器名称',
+      'modal.router.namePlaceholder': '例：客厅路由器',
+      'modal.router.band': '频段',
+      'modal.router.channel': '信道 (5 GHz)',
+      'modal.router.channel24': '信道 (2.4 GHz)',
+      'modal.router.mesh': '🔗 Mesh 系统设备',
+      'modal.router.add': '添加',
+      'modal.measuring.title': '📡 测量中...',
+      'ctx.rename': '✏️ 重命名',
+      'ctx.delete': '🗑️ 删除',
+      'ai.overallScore': '综合评分',
+      'ai.excellent': '优秀',
+      'ai.good': '良好',
+      'ai.fair': '一般',
+      'ai.weak': '较弱',
+      'ai.veryWeak': '很弱',
+      'ai.unnamed': '未命名房间',
+      'ai.measurements': '个测量',
+      'ai.avg': '均值',
+      'ai.roomAnalysis': '🏠 各房间WiFi状态',
+      'ai.noMeasurement': '无测量',
+      'legend.title': '频谱标尺',
+      'legend.dbm': 'dBm',
+      'legend.speed': '速度',
+      'legend.allBands': '全部频段',
+      'legend.points': '个测量点',
+      'confirm.deleteRoom': '个房间将被删除。确定吗？',
+      'confirm.deleteProject': '此项目将被永久删除。确定吗？',
+      'confirm.clearFloorplan': '清除平面图？',
+      'status.saved': '项目已保存',
+      'status.deleted': '已删除',
+      'status.roomsDeleted': '个房间已删除',
+      'status.noRooms': '没有房间可删除',
+      'quality.excellent': '优秀信号',
+      'quality.veryGood': '很好的信号',
+      'quality.good': '良好信号',
+      'quality.weak': '弱信号',
+      'quality.veryWeak': '很弱的信号',
+      'device.mobile': '手机',
+      'device.tablet': '平板',
+      'device.desktop': '电脑',
+      'stats.title': '统计摘要',
+      'stats.total': '总测量数',
+      'stats.best': '最佳信号',
+      'stats.worst': '最差信号',
+      'stats.avgDl': '平均TX Rate',
+      'stats.allMeasurements': '所有测量',
+      'measuring.sample': '样本',
+      'measuring.switchBand': '请切换到另一个WiFi频段，然后点击下方按钮。',
+      'measuring.skipBand': '跳过此频段',
+      'measuring.continue': '已切换，继续',
+      'measuring.remeasure': '🔄 重新测量',
     }
   };
 
   function t(key) {
-    return (translations[currentLang] && translations[currentLang][key]) 
-      || (translations['en'] && translations['en'][key]) 
+    return (translations[currentLang] && translations[currentLang][key])
+      || (translations['en'] && translations['en'][key])
       || key;
   }
 
@@ -383,8 +933,8 @@ const I18n = (() => {
     if (!translations[lang]) return;
     currentLang = lang;
     localStorage.setItem('wifimapper-lang', lang);
+    document.documentElement.lang = lang;
     applyTranslations();
-    // Dispatch event so other modules can react
     window.dispatchEvent(new CustomEvent('languageChanged', { detail: { lang } }));
   }
 
@@ -392,8 +942,12 @@ const I18n = (() => {
     return currentLang;
   }
 
+  function getSupportedLanguages() {
+    return SUPPORTED_LANGS;
+  }
+
   function applyTranslations() {
-    // Update all elements with data-i18n attribute
+    // Static text elements
     document.querySelectorAll('[data-i18n]').forEach(el => {
       const key = el.getAttribute('data-i18n');
       const text = t(key);
@@ -406,24 +960,22 @@ const I18n = (() => {
       }
     });
 
-    // Update title attributes
+    // Title attributes
     document.querySelectorAll('[data-i18n-title]').forEach(el => {
       el.title = t(el.getAttribute('data-i18n-title'));
     });
 
-    // Update placeholder attributes  
+    // Placeholder attributes
     document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
       el.placeholder = t(el.getAttribute('data-i18n-placeholder'));
     });
 
-    // Update lang toggle button
-    const langBtn = document.getElementById('btn-lang-toggle');
-    if (langBtn) {
-      langBtn.textContent = currentLang === 'en' ? '🇹🇷 TR' : '🇬🇧 EN';
-      langBtn.title = currentLang === 'en' ? 'Türkçe\'ye geç' : 'Switch to English';
+    // Update language selector
+    const langSelect = document.getElementById('lang-select');
+    if (langSelect) {
+      langSelect.value = currentLang;
     }
   }
 
-  // Public API
-  return { t, setLanguage, getLanguage, applyTranslations };
+  return { t, setLanguage, getLanguage, getSupportedLanguages, applyTranslations };
 })();

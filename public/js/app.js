@@ -1662,13 +1662,14 @@ const App = (() => {
 
   // ─── Language Toggle ──────────────────────────────────
   function bindLanguageToggle() {
-    const btn = document.getElementById('btn-lang-toggle');
-    if (!btn) return;
+    const select = document.getElementById('lang-select');
+    if (!select) return;
 
-    btn.addEventListener('click', () => {
-      const newLang = I18n.getLanguage() === 'en' ? 'tr' : 'en';
-      I18n.setLanguage(newLang);
-      // Refresh dynamic content
+    // Set initial value from stored preference
+    select.value = I18n.getLanguage();
+
+    select.addEventListener('change', () => {
+      I18n.setLanguage(select.value);
       refreshAllDynamicContent();
     });
   }
@@ -1698,9 +1699,7 @@ const App = (() => {
         hint.style.color = '#f59e0b';
       } else if (count === 3) {
         hint.style.display = 'block';
-        hint.textContent = I18n.getLanguage() === 'en'
-          ? '3 samples provide a good balance between speed and accuracy.'
-          : '3 örneklem hız ve doğruluk arasında iyi bir denge sağlar.';
+        hint.textContent = I18n.t('sample.fastHint');
         hint.style.color = 'rgba(255,255,255,0.45)';
       } else {
         hint.style.display = 'none';

@@ -34,7 +34,15 @@
         <span class="status-dot offline"></span>
         <span class="status-text" data-i18n="wifi.waiting">Waiting for connection…</span>
       </div>
-      <button id="btn-lang-toggle" class="btn btn-sm btn-ghost" style="font-size: 12px; padding: 4px 8px; min-width: 52px;">🇹🇷 TR</button>
+      <button id="btn-lang-toggle" class="btn btn-sm btn-ghost" style="display:none;">🇹🇷 TR</button>
+      <select id="lang-select" style="background: rgba(255,255,255,0.08); color: #e2e8f0; border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; padding: 4px 6px; font-size: 12px; font-family: inherit; cursor: pointer; outline: none; min-width: 90px;">
+        <option value="en">🇬🇧 English</option>
+        <option value="tr">🇹🇷 Türkçe</option>
+        <option value="es">🇪🇸 Español</option>
+        <option value="de">🇩🇪 Deutsch</option>
+        <option value="ru">🇷🇺 Русский</option>
+        <option value="zh">🇨🇳 中文</option>
+      </select>
       <span id="device-badge" class="device-badge desktop"></span>
     </div>
   </header>
