@@ -111,3 +111,83 @@ WifiMapper, doğrudan kablosuz ağ kartınızın erişim noktası (access point)
 *   `POST /api/projects`: Yeni bir proje oluşturur.
 *   `PUT /api/projects/:id`: Proje verilerini (ölçek, harita çizimleri, ölçüm noktaları) günceller.
 *   `DELETE /api/projects/:id`: Belirtilen projeyi siler.
+
+---
+
+## 🏗️ Mimari: localhost vs Vercel
+
+WifiMapper **macOS'a özel native framework** kullanarak WiFi taraması yapar. Bu nedenle **ölçüm yapılabilmesi için yerel sunucu (localhost) şarttır.**
+
+```
+localhost:3333 (MacBook)                    wifimapper.vercel.app
+├── Frontend (HTML/CSS/JS)  ✅              ├── Frontend (HTML/CSS/JS)  ✅
+├── WiFi Tarama API         ✅ ← macOS      ├── WiFi Tarama API         ❌
+├── Hız Testi API           ✅              ├── Hız Testi API           ❌
+└── Veri Kaydetme           ✅              └── Veri Kaydetme           ❌
+```
+
+### Neden Vercel'de Ölçüm Yapılamaz?
+WiFi tarama, macOS'un `system_profiler SPAirPortDataType` komutunu çalıştıran bir native binary gerektirir. Vercel bir serverless platformdur ve macOS komutları çalıştıramaz. Bu nedenle:
+
+| Özellik | localhost ✅ | Vercel ❌ |
+| :--- | :---: | :---: |
+| WiFi ölçümü yapma | ✅ | ❌ |
+| Proje kaydetme | ✅ | ❌ |
+| Harita görüntüleme | ✅ | ✅ (salt okunur) |
+| AI analiz raporu | ✅ | ❌ (veri yok) |
+
+### Aynı Kısıtlar Tablet/Telefon İçin de Geçerli mi?
+**Evet.** iPhone, iPad ve Android cihazlardaki web tarayıcıları WiFi sinyal bilgisine (dBm, Tx Rate) erişemez. Ölçüm yapmak için **macOS + localhost** şarttır.
+
+> 💡 **Tavsiye:** Vercel dağıtımını yalnızca bitmiş raporu/haritayı başkalarıyla paylaşmak için kullanın. Aktif ölçüm ve analiz için her zaman `localhost:3333` üzerinden çalışın.
+
+---
+
+## 🏠 Oda Yönetimi
+
+*   **Dikdörtgen Çiz:** Sol araç çubuğundan dikdörtgen oda çizin.
+*   **Köşeleri Belirle:** Serbest formda çokgen oda oluşturun (noktalarla).
+*   **Çift tıklama menüsü:** Var olan bir odaya çift tıklayarak isim verin veya silin.
+*   **Tüm Odaları Sil:** Sol paneldeki buton ile tüm oda çizimlerini tek seferde temizleyin.
+*   **Görünürlük:** "Odaları Göster" toggle'ı ile oda çizimlerini gizleyin/gösterin.
+
+---
+
+## 🔗 Mesh Sistem Desteği
+
+Modem/AP eklerken "Mesh Sistem Cihazı" olarak işaretleyebilirsiniz. Bu sayede:
+*   Aynı SSID ve kanal kullanan mesh cihazlar arasında **kanal çakışması uyarısı verilmez**.
+*   AI analizinde mesh sistemler otomatik olarak tanınır ve raporlanır.
+
+---
+
+## 📊 AI Analiz Raporu
+
+"🧠 Yapay Zeka" bölümünden başlatabileceğiniz analiz şunları içerir:
+*   **Genel skor:** Tüm ölçümlerin ortalamasına göre (Mükemmel/İyi/Orta/Zayıf/Kötü).
+*   **Oda bazlı WiFi durumu:** Her odadaki ölçüm sayısı, ortalama sinyal ve kalite kartı.
+*   **Kanal çakışması tespiti:** 2.4 GHz ve 5 GHz bantlarında kanal çakışma uyarıları.
+*   **Kapsama alanı analizi:** Zayıf sinyal noktaları ve ölü bölge tespiti.
+*   **Mesh sistem bilgisi:** Mesh cihazlar için çakışma uyarıları devre dışı bırakılır.
+
+---
+
+## 🌈 Spektrum Cetveli
+
+Haritanın sağ alt köşesinde dikey bir spektrum cetveli gösterilir:
+*   **Sol taraf:** dBm değerleri (-30 ile -90 arası)
+*   **Sağ taraf:** Tahmini Tx Rate (Mbps)
+*   **Renk kodu:** Cyan/yeşil (mükemmel) → kırmızı (çok zayıf)
+*   **Kalite etiketleri:** Mükemmel, İyi, Orta, Zayıf, Çok Zayıf
+
+---
+
+## 🔌 Port Bilgisi
+
+Bu proje **`PORTS_REGISTRY.md`** dosyasında kayıtlıdır:
+
+| Proje | Port | Tür |
+| :--- | :---: | :--- |
+| **wifi-mapper** | `3333` | Express |
+
+Port değiştirmek için `server.js` dosyasındaki `PORT` değişkenini güncelleyin.
