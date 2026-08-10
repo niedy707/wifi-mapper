@@ -433,13 +433,20 @@ app.delete('/api/projects/:id', (req, res) => {
 
 // ─── Start Server ────────────────────────────────────────────────
 
+// Varsayılan bind LOOPBACK'tir. Bu sunucuda kimlik doğrulaması yok ve tüm
+// CRUD uçları (proje/ölçüm/kat planı oku-yaz-sil) açıktır; 0.0.0.0'a bağlanmak
+// aynı Wi-Fi'daki herkese (klinik/misafir ağı, otel, kafe) evin kat planını ve
+// ağ topolojisini açar. Telefondan bakmak gerekiyorsa bilinçli olarak:
+//   WIFIMAPPER_HOST=0.0.0.0 npm start
+const HOST = process.env.WIFIMAPPER_HOST || '127.0.0.1';
+
 if (process.env.NODE_ENV !== 'production') {
-  app.listen(PORT, '0.0.0.0', () => {
+  app.listen(PORT, HOST, () => {
     console.log('');
     console.log('  ╔══════════════════════════════════════════╗');
     console.log('  ║                                          ║');
     console.log('  ║   🛜  WifiMapper Server                  ║');
-    console.log(`  ║   📡 http://localhost:${PORT}              ║`);
+    console.log(`  ║   📡 http://${HOST}:${PORT}                ║`);
     console.log('  ║                                          ║');
     console.log('  ║   WiFi Heatmap & Survey Tool             ║');
     console.log('  ║   NetSpot Alternative — Free & Local     ║');

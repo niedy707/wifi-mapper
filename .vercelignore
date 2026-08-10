@@ -1,0 +1,21 @@
+# Buluta ÇIKMAMASI gerekenler.
+#
+# 2026-08-09 taraması: https://wifimapper.vercel.app/api/projects kimlik
+# doğrulaması olmadan 19 MB'lık gerçek ev kat planını (base64 PNG), 107 ölçüm
+# noktasının koordinatlarını ve mesh router konumlarını servis ediyordu.
+# public/ altındaki kat planı JPG'si de statik olarak erişilebilirdi.
+#
+# Vercel'e yalnızca vercel-public/ (bilgilendirme sayfası) gider.
+
+data/
+public/
+server.js
+wifi_scanner/
+wifi_scanner.swift
+convert_dwg.py
+templates/
+node_modules/
+*.log
+clear_measurements.js
+clear_rooms.js
+load_floorplan.js
