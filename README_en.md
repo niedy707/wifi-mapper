@@ -191,7 +191,7 @@ wifi-mapper/
 │       ├── speedtest.js    # Speed test utilities
 │       └── export.js       # PNG/JSON/CSV export
 └── templates/              # Floor plan templates (coming soon)
-    └── ornek-daire/           # sample apartment types
+    └── ornek-daire/        # Sample apartment types
 ```
 
 ---

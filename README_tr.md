@@ -191,7 +191,7 @@ wifi-mapper/
 │       ├── speedtest.js    # Hız testi araçları
 │       └── export.js       # PNG/JSON/CSV dışa aktarma
 └── templates/              # Kat planı şablonları (yakında)
-    └── ornek-daire/           # örnek daire tipleri
+    └── ornek-daire/        # Örnek daire tipleri
 ```
 
 ---

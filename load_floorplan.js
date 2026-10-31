@@ -3,7 +3,7 @@ const path = require('path');
 const crypto = require('crypto');
 
 function loadFloorplan() {
-  const imgPath = path.join(__dirname, 'public', 'Örnek Daire plan (metrik).jpg');
+  const imgPath = path.join(__dirname, 'public', 'ornek-daire-plani.jpg');
   if (!fs.existsSync(imgPath)) {
     console.error('Error: Image file not found at', imgPath);
     process.exit(1);
