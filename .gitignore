@@ -4,3 +4,9 @@ wifi_scanner
 .DS_Store
 .vercel/
 .vercel
+
+# AHP (AI Handshake Protocol)
+.ai_journal.md
+.claudeprompt
+__pycache__/
+*.pyc
